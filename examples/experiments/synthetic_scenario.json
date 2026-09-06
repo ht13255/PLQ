@@ -1,0 +1,6 @@
+{
+  "modes": 1,
+  "input": {"occupation": [1]},
+  "steps": [{"operation": "loss", "mode": 0, "transmission": 0.7}],
+  "detectors": [{"threshold": true}]
+}

@@ -1,8 +1,10 @@
 # Paper-parameter benchmarks
 
-Recorded: 2026-09-06T14:33:04.152103+00:00
+Recorded: 2026-09-06T22:43:03.724104+00:00
 
-PLQ 0.3.0. All numbers below were computed by `scripts/paper_benchmarks.py`.
+PLQ 0.4.0. All numbers below were computed by `scripts/paper_benchmarks.py`.
+
+Evidence category: `paper_parameter_reproduction`; `experimental_reproduction=false`. See [the comparison contract](REPRODUCTION.md).
 
 Three papers supply numerical scenarios; a fourth motivates explicit noise hypotheses. Published measurements, derived inputs and scenario assumptions are recorded separately in [paper_parameters.json](../benchmarks/paper_parameters.json). Full machine results, configurations, versions and input hashes are in [paper_benchmarks.json](../benchmarks/paper_benchmarks.json).
 

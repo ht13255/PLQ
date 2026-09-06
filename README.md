@@ -2,7 +2,28 @@
 
 A Python simulator for **photonic circuits, logical qubits and quantum error correction**. Keep photon loss, detector errors, heralding probabilities and numerical cutoffs visible.
 
-**v0.3.0** · Python 3.11+ · NumPy + SciPy · [Full guide](docs/GUIDE.md) · [Paper benchmarks](docs/PAPER_BENCHMARKS.md)
+**v0.4.0** · Python 3.11+ · NumPy + SciPy · [Full guide](docs/GUIDE.md) · [Paper benchmarks](docs/PAPER_BENCHMARKS.md)
+
+## New in 0.4: scale optics and make hardware assumptions testable
+
+- **Sparse pure-state optics:** `Circuit.run_sparse` avoids the full Fock density
+  matrix and lifted unitary. `Circuit.sample` adds explicit loss/phase trajectories
+  with seeds, shots and confidence intervals. [Scaling guide](docs/SCALABILITY.md).
+- **Separate evidence categories:** paper-parameter runs are tagged separately
+  from experimental-data comparisons. `compare-experiment` checks raw-count
+  denominators, dataset hashes and measurement conventions. [Reproduction contract](docs/REPRODUCTION.md).
+- **A physical optical-to-QEC component:** six-rail teleportation preserves detector
+  events, false heralds, surviving output states, buffer loss and feedforward
+  deadlines. [Hardware bridge and remaining gaps](docs/HARDWARE_BRIDGE.md).
+
+```bash
+python examples/scalable_optics.py
+python -m plq teleportation examples/configs/teleportation.json
+python -m plq compare-experiment examples/experiments/synthetic_manifest.json
+```
+
+The comparison example uses synthetic counts. None of these commands claims to
+reproduce an entire experiment or demonstrate a fault-tolerant hardware threshold.
 
 ## Install and run
 
@@ -154,10 +175,15 @@ Perceval exchanges numeric lossless optical unitaries. PennyLane uses explicit K
 
 ## Validation and scope
 
+The 0.4 changes have a separate [scaling and hardware validation record](docs/VALIDATION_V04.md).
+
 v0.3 preserves small positive Gram eigenvalues and uses a stable two-wavepacket factorization: a tested coincidence near 1e-14 no longer vanishes at the default tolerance. New tests check mixed-state density invariants, multiphoton source moments, and lossy transfer maps against an independent vacuum dilation. Earlier thermal, detector, decoder and SDK tests remain. See the [measured validation report](docs/VALIDATION.md), [paper comparisons](docs/PAPER_BENCHMARKS.md) and [GitHub CI](https://github.com/ht13255/PLQ/actions).
 
 PLQ is a **finite-model research simulator**, not a hardware-calibrated digital twin. Main calculations use complex128. Defaults are ideal until noise is specified. Ideal encoding, logical gates and recovery are not physical fault-tolerant schedules. Active squeezing, nonlinear optics, detector dead time/afterpulsing and correlated mixed spectral inputs still need additional models. `WavepacketState.through` does not accept thermal baths: a spectral bath population must be specified explicitly.
 
+- [Scaling, sparse states and sampling](docs/SCALABILITY.md)
+- [Experimental comparison contract](docs/REPRODUCTION.md)
+- [Optical hardware instrument](docs/HARDWARE_BRIDGE.md)
 - [Paper inputs, measured runs and limitations](docs/PAPER_BENCHMARKS.md)
 - [Full examples and SDK guide](docs/GUIDE.md)
 - [Physics, conventions and accuracy limits](docs/PHYSICS.md)

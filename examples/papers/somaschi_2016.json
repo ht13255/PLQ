@@ -1,10 +1,34 @@
 {
   "sources": [
-    {"mean_photons": 0.154, "g2_zero": 0.0028},
-    {"mean_photons": 0.154, "g2_zero": 0.0028}
+    {
+      "mean_photons": 0.154,
+      "g2_zero": 0.0028
+    },
+    {
+      "mean_photons": 0.154,
+      "g2_zero": 0.0028
+    }
   ],
   "indistinguishability": 0.9956,
   "multiphoton_model": "same_wavepacket",
   "beamsplitter_transmission": 0.5,
-  "detectors": [{"threshold": true}, {"threshold": true}]
+  "detectors": [
+    {
+      "threshold": true
+    },
+    {
+      "threshold": true
+    }
+  ],
+  "provenance": {
+    "sources": [
+      "https://arxiv.org/abs/1510.06499"
+    ],
+    "assumptions": [
+      "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+      "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+      "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+      "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+    ]
+  }
 }

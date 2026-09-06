@@ -26,9 +26,32 @@ def _unknown(data, allowed):
         raise ValueError(f"Unknown configuration fields: {sorted(extra)}")
 
 
+def _build_circuit(config, modes):
+    circuit=Circuit(modes)
+    for step in config.get("steps",[]):
+        step=dict(step)
+        operation=step.pop("operation")
+        if operation not in ("bs","phase","loss","thermal_loss","phase_noise","unitary","transfer"):
+            raise ValueError(f"Unsupported optical operation {operation!r}")
+        if operation in ("unitary", "transfer"):
+            _unknown(step,{"real","imag","modes"} | ({"atol"} if operation=="transfer" else set()))
+            matrix=np.array(step.pop("real"))+1j*np.array(step.pop("imag",0))
+            getattr(circuit,operation)(matrix,**step)
+        else:
+            getattr(circuit,operation)(**step)
+    return circuit
+
+
 def optical_scenario(config):
     """Evaluate a validated, data-only optical scenario (no imports/eval from JSON)."""
-    _unknown(config,{"modes","max_photons","precision","input","steps","detectors","herald","dualrail_qubits"})
+    _unknown(config,{"modes","max_photons","precision","input","steps","detectors","herald","dualrail_qubits","backend","budget","shots","seed"})
+    backend=config.get("backend", "density")
+    if backend not in ("density", "sparse", "trajectories"):
+        raise ValueError("backend must be density, sparse or trajectories")
+    if backend != "density":
+        return sparse_scenario(config)
+    if set(config) & {"budget", "shots", "seed"}:
+        raise ValueError("budget/shots/seed require an explicit sparse or trajectories backend")
     precision=Precision(**config.get("precision",{}))
     source=config["input"]
     _unknown(source,{"occupation","sources","amplitudes"})
@@ -61,21 +84,10 @@ def optical_scenario(config):
         state=FockState.amplitudes(basis,amplitudes)
     else:
         raise ValueError("input needs exactly one of occupation, sources, or amplitudes")
-    circuit=Circuit(basis.modes)
-    for step in config.get("steps",[]):
-        step=dict(step)
-        operation=step.pop("operation")
-        if operation not in ("bs","phase","loss","thermal_loss","phase_noise","unitary","transfer"):
-            raise ValueError(f"Unsupported optical operation {operation!r}")
-        if operation in ("unitary", "transfer"):
-            _unknown(step,{"real","imag","modes"} | ({"atol"} if operation=="transfer" else set()))
-            matrix=np.array(step.pop("real"))+1j*np.array(step.pop("imag",0))
-            getattr(circuit,operation)(matrix,**step)
-        else:
-            getattr(circuit,operation)(**step)
+    circuit=_build_circuit(config, basis.modes)
     result=circuit.run(state)
     payload={"format":"plq.optical-result.v1","versions":{"plq":__version__,"numpy":np.__version__,"python":platform.python_version()},
-             "config":config,"model":result.model,"source_omitted_probability":omitted,
+             "config":config,"backend":"density","model":result.model,"source_omitted_probability":omitted,
              "bath_omitted_probability":result.bath_omitted_probability,
              "transfer_residuals":result.transfer_residuals,
              "truncation_history":result.truncation_history,"numerical_trace_error":result.numerical_trace_error,
@@ -98,6 +110,66 @@ def optical_scenario(config):
         branch=DualRail(config["dualrail_qubits"],basis=result.state.basis).decode(result.state)
         payload["dualrail_success"]={"probability":branch.probability,"rho_real":branch.rho.real.tolist(),"rho_imag":branch.rho.imag.tolist()}
     return payload
+
+
+def sparse_scenario(config):
+    from .scalable import SparseBudget, SparseKet, run_sparse, sample_trajectories
+    unsupported = set(config) & {"max_photons", "precision", "herald", "dualrail_qubits"}
+    if unsupported:
+        raise ValueError(f"Sparse backend does not silently approximate these options: {sorted(unsupported)}")
+    source = config["input"]
+    budget = SparseBudget(**config.get("budget", {}))
+    if set(source) == {"occupation"}:
+        state = SparseKet.occupation(source["occupation"], budget=budget)
+    elif set(source) == {"amplitudes"}:
+        amplitudes = {}
+        for item in source["amplitudes"]:
+            _unknown(item, {"occupation", "real", "imag"})
+            occ = tuple(item["occupation"])
+            if occ in amplitudes:
+                raise ValueError("Repeated input occupation")
+            amplitudes[occ] = complex(item.get("real", 0), item.get("imag", 0))
+        state = SparseKet(config["modes"], amplitudes, budget=budget)
+    else:
+        raise ValueError("Sparse backend requires a pure occupation or amplitude input")
+    circuit = _build_circuit(config, config["modes"])
+    payload = {"format": "plq.sparse-optics.v1", "config": config, "backend": config["backend"],
+               "versions": {"plq": __version__, "numpy": np.__version__, "python": platform.python_version()},
+               "transfer_residuals": circuit.transfer_residuals}
+    if config["backend"] == "sparse":
+        if set(config) & {"shots", "seed", "detectors"}:
+            raise ValueError("shots/seed/detectors require backend=trajectories")
+        result = run_sparse(circuit, state, budget=budget)
+        return {**payload, "model": "exact complex128 sparse pure state; no amplitude truncation",
+                "norm_squared": result.norm, "support_terms": len(result.amplitudes),
+                "probabilities": [{"occupation": list(s), "probability": p} for s, p in result.probabilities().items()]}
+    detectors = [Detector(**d) for d in config["detectors"]] if "detectors" in config else None
+    result = sample_trajectories(circuit, state, shots=config.get("shots", 1000), seed=config.get("seed", 0),
+                                 budget=budget, detectors=detectors)
+    return {**payload, **result.to_dict()}
+
+
+def teleportation_scenario(config):
+    from .hardware import teleportation_instrument, FeedForward
+    _unknown(config, {"transmissions", "detectors", "beamsplitter_transmission", "schedule", "output_phase", "analyzer_transfer"})
+    options = dict(config)
+    if "detectors" in options:
+        options["detectors"] = [Detector(**d) for d in options["detectors"]]
+    if "schedule" in options:
+        options["schedule"] = FeedForward(**options["schedule"])
+    if "analyzer_transfer" in options:
+        transfer = options["analyzer_transfer"]
+        _unknown(transfer, {"real", "imag"})
+        options["analyzer_transfer"] = np.asarray(transfer["real"])+1j*np.asarray(transfer.get("imag", 0))
+    instrument = teleportation_instrument(**options)
+    report = instrument.apply(np.eye(2)/2)
+    return {"format": "plq.teleportation.v1", "config": config, "plq_version": __version__,
+            "metadata": instrument.metadata, "probe": "maximally mixed input; not worst-case performance",
+            "accepted_probability": report["accepted_probability"],
+            "computational_probability": report["computational_branch"].probability,
+            "accepted_leakage_probability": report["accepted_leakage_probability"],
+            "rejected_probability": report["rejected_probability"], "late_probability": report["late_probability"],
+            "flagged_channel_completeness_residual": instrument.flagged_channel().completeness_residual}
 
 
 def memory_scenario(config, *, base_directory=None):
@@ -158,7 +230,7 @@ def environment_report():
 
 def source_hom_scenario(config):
     _unknown(config, {"sources", "indistinguishability", "multiphoton_model",
-                      "beamsplitter_transmission", "transmissions", "detectors", "precision"})
+                      "beamsplitter_transmission", "transmissions", "detectors", "precision", "provenance"})
     distributions = []
     for source in config["sources"]:
         _unknown(source, {"probabilities", "mean_photons", "g2_zero"})
@@ -174,7 +246,14 @@ def source_hom_scenario(config):
     result = source_hom(distributions, config["indistinguishability"],
                         multiphoton_model=config["multiphoton_model"],
                         precision=Precision(**config.get("precision", {})), **options)
-    return {"format": "plq.source-hom.v1", "config": config, "plq_version": __version__,
+    from .reproduction import evidence_record
+    provenance = config.get("provenance", {})
+    _unknown(provenance, {"sources", "assumptions"})
+    for key, entries in provenance.items():
+        if not isinstance(entries, list) or any(not isinstance(v, str) or not v.strip() for v in entries):
+            raise ValueError("Provenance sources/assumptions must be nonempty strings in lists")
+    evidence = evidence_record("paper_parameter_reproduction" if provenance.get("sources") else "simulation", **provenance)
+    return {"evidence": evidence, "format": "plq.source-hom.v1", "config": config, "plq_version": __version__,
             "versions": {"numpy": np.__version__, "python": platform.python_version()}, **result}
 
 
@@ -183,7 +262,7 @@ def main(argv=None):
     parser.add_argument("--version",action="version",version=__version__)
     sub=parser.add_subparsers(dest="command",required=True)
     sub.add_parser("doctor",help="Show the installed core and optional SDK versions")
-    for command in ("optics","memory","source-hom"):
+    for command in ("optics","memory","source-hom","teleportation","compare-experiment"):
         child=sub.add_parser(command,help=f"Run a {command} JSON scenario")
         child.add_argument("config",type=Path)
         child.add_argument("--output",type=Path)
@@ -210,7 +289,12 @@ def main(argv=None):
                      "plq_version":__version__,"model":"pure-wavepacket HOM with independent vacuum-environment loss"}
         else:
             with args.config.open(encoding="utf-8") as f: config=json.load(f)
-            if args.command == "source-hom":
+            if args.command == "compare-experiment":
+                from .reproduction import compare_experiment
+                payload = compare_experiment(config, base_directory=args.config.resolve().parent)
+            elif args.command == "teleportation":
+                payload = teleportation_scenario(config)
+            elif args.command == "source-hom":
                 payload = source_hom_scenario(config)
             else:
                 payload=(optical_scenario(config) if args.command=="optics" else

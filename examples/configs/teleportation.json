@@ -1,0 +1,5 @@
+{
+  "transmissions": [0.95, 0.95, 0.95, 0.95, 0.98, 0.98],
+  "detectors": [{"efficiency": 0.9, "dark_rate_hz": 100}, {"efficiency": 0.9, "dark_rate_hz": 100}, {"efficiency": 0.9, "dark_rate_hz": 100}, {"efficiency": 0.9, "dark_rate_hz": 100}],
+  "schedule": {"detection_seconds": 2e-9, "processing_seconds": 8e-9, "switching_seconds": 2e-9, "buffer_seconds": 15e-9, "buffer_loss_db_per_second": 2000000, "switch_transmission": 0.97}
+}

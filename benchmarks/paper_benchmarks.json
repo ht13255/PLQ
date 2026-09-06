@@ -1,37 +1,46 @@
 {
+  "evidence": {
+    "category": "paper_parameter_reproduction",
+    "experimental_reproduction": false,
+    "sources": [],
+    "assumptions": []
+  },
   "schema": "plq.paper-benchmarks.v1",
-  "generated_utc": "2026-09-06T14:33:04.152103+00:00",
+  "generated_utc": "2026-09-06T22:43:03.724104+00:00",
   "versions": {
-    "plq": "0.3.0",
+    "plq": "0.4.0",
     "python": "3.12.13",
     "numpy": "2.3.5",
     "scipy": "1.17.0"
   },
   "source_provenance": {
-    "checkout_head": "c4914874603ee7a26ed2d77973f20a8b10eda1e9",
+    "checkout_head": "449507afdd3daf29fc3922d7726c4a940406da9e",
     "working_tree_dirty": true,
     "sha256": {
       "benchmarks/paper_parameters.json": "344317898a6297b9916e76bcabc59c975505540f707821937324defb0af29627",
-      "examples/papers/somaschi_2016.json": "cbe987c37d0f1b6fd298ba54a44b8a9ad2d02ea7723f316f9bd1967ecac04b20",
-      "examples/papers/ding_2016.json": "d92801d9baba6a4dc8fe73c3cffe0f9e9daf39c00b6c8575638e6f5af9841afb",
-      "scripts/paper_benchmarks.py": "bbc3681581aae3d7d2951eb354baeca5e50dc83dfa88483d2ccee5741e76b2e3",
-      "src/plq/__init__.py": "cb512a2bd890a5fd4a956505b0692fc396e7e2ac40750c18513548c1719361d4",
+      "examples/papers/somaschi_2016.json": "820848b5a5a621775d65e66af0e6c8b8e2ab48252a83bbf687491b0b9234f66b",
+      "examples/papers/ding_2016.json": "8a2c9603afa614ebeed0bfd9f94a3af5c3a7204da03ae6cb5e9d34b5fe78bd85",
+      "scripts/paper_benchmarks.py": "1dff6d58eb5a7f0e72a254a35f8ef27909072bbad7ad503cdf0a518f6f9bfbe6",
+      "src/plq/__init__.py": "8a53b2c82b13f8cd920ce4e41a7e812d24d241936ce226b043502baf271fe71d",
       "src/plq/__main__.py": "c394af1c4963327e4797123bab83dc2a7cd352a38996684987328f0fa8269932",
       "src/plq/adapters/__init__.py": "3854ef9487e32321ebe1d0fd772978f6a270ce7aa435130bf84fb16f0cb68b41",
       "src/plq/adapters/pennylane.py": "ed40b07b3ccaaa6794c5be95574f7bdbee918462fc7025f00b4f8ed47cc951ef",
       "src/plq/adapters/perceval.py": "b6ddd96d8fbe58646c8059f28f8463bf2f624f470b8949d6d03da874ed4fb71b",
       "src/plq/adapters/stim.py": "e705c0a482d858bfc7201ca845d4952142414b7e286d377624c2c8ca545d30aa",
       "src/plq/channels.py": "fce97f4b3e54548ef6f3eff6c88c51bc7344106ffb518b406a01cbc79e24ef72",
-      "src/plq/cli.py": "88b948fa144cae00338bdffadf43ef7c0f1d16065e9e11435f70eddd8dee6e81",
+      "src/plq/cli.py": "4a531020ea6b22dc7ca4494935795b354f7bf6609cfb793e82d8c03287ad694c",
       "src/plq/decoding.py": "3c38e5d861f120b1c27c14971c9e767e8bac617ab0705993d96198ea72a91cfe",
       "src/plq/detectors.py": "999610fd16f799a64e9026fb54a532e7980d2561bee98b446df5ccbfd577083f",
       "src/plq/experiments.py": "a922e655c2d9b1f2eb29479e20ea1743f6226be998a98289ca0853372e478179",
       "src/plq/fusion.py": "24894e4aec073faaa70380f5131806f4b03e9866fd43e2a8368fb1238fc34195",
+      "src/plq/hardware.py": "558b5243701505a87daa7f30e4343605719392955b136092dedb1947eb16a7fa",
       "src/plq/numerics.py": "02f8c027baff60780a6fadc26182edb60ddd7192b298e108d196325f693c897a",
-      "src/plq/optics.py": "88bf23e91040d8a75d7dd10d1cb88a4c73608ee8953c9c9dcd70354e86b3c44d",
+      "src/plq/optics.py": "a93068a05693df09a56660b2772ee9a85f1e955459e32f39c8f6dba45328f0f9",
       "src/plq/qec.py": "7800a9906c1610d967ceda24f932926a54826895b3cb1f5a7222fb986a85c6c0",
       "src/plq/recovery.py": "12fa4ce9718a9589575607a4f19fadbb79151198b5c20bf33f1c0d519fc7c07d",
       "src/plq/reference.py": "c89062f5f351a796aa0554b8fa3a143dc56604f68f695d1a0ab878af826a66c2",
+      "src/plq/reproduction.py": "185860f179e2907bbe0e0288b59a41d84b10a10792ed935782d261df8a4a1738",
+      "src/plq/scalable.py": "0422425489f3c350582da20ef0f4470b7485bed670c9b04eefbfed163ce8a2d8",
       "src/plq/simulation.py": "3fd34c4f83d2adfe98047538176c47182c89f45015850934864f94d0f7542195",
       "src/plq/sources.py": "947308bd6ceddf6142d6d47323671b6691cf3997e569dcc9e37fb26d458ec7e3",
       "src/plq/thermal.py": "9815642033871671a59975421b66957c81565976f5b78cfb3e1b50d902d9cdcb",
@@ -187,6 +196,19 @@
       "paper": "somaschi_2016",
       "source_url": "https://arxiv.org/abs/1510.06499",
       "result": {
+        "evidence": {
+          "category": "paper_parameter_reproduction",
+          "experimental_reproduction": false,
+          "sources": [
+            "https://arxiv.org/abs/1510.06499"
+          ],
+          "assumptions": [
+            "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+            "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+            "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+            "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+          ]
+        },
         "format": "plq.source-hom.v1",
         "config": {
           "sources": [
@@ -209,9 +231,20 @@
             {
               "threshold": true
             }
-          ]
+          ],
+          "provenance": {
+            "sources": [
+              "https://arxiv.org/abs/1510.06499"
+            ],
+            "assumptions": [
+              "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+              "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+              "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+              "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+            ]
+          }
         },
-        "plq_version": "0.3.0",
+        "plq_version": "0.4.0",
         "versions": {
           "numpy": "2.3.5",
           "python": "3.12.13"
@@ -304,6 +337,19 @@
       "paper": "somaschi_2016",
       "source_url": "https://arxiv.org/abs/1510.06499",
       "result": {
+        "evidence": {
+          "category": "paper_parameter_reproduction",
+          "experimental_reproduction": false,
+          "sources": [
+            "https://arxiv.org/abs/1510.06499"
+          ],
+          "assumptions": [
+            "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+            "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+            "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+            "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+          ]
+        },
         "format": "plq.source-hom.v1",
         "config": {
           "sources": [
@@ -326,9 +372,20 @@
             {
               "threshold": true
             }
-          ]
+          ],
+          "provenance": {
+            "sources": [
+              "https://arxiv.org/abs/1510.06499"
+            ],
+            "assumptions": [
+              "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+              "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+              "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+              "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+            ]
+          }
         },
-        "plq_version": "0.3.0",
+        "plq_version": "0.4.0",
         "versions": {
           "numpy": "2.3.5",
           "python": "3.12.13"
@@ -421,6 +478,19 @@
       "paper": "ding_2016",
       "source_url": "https://arxiv.org/abs/1601.00284",
       "result": {
+        "evidence": {
+          "category": "paper_parameter_reproduction",
+          "experimental_reproduction": false,
+          "sources": [
+            "https://arxiv.org/abs/1601.00284"
+          ],
+          "assumptions": [
+            "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+            "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+            "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+            "No fit to the reported count rate or raw visibility is performed."
+          ]
+        },
         "format": "plq.source-hom.v1",
         "config": {
           "sources": [
@@ -449,9 +519,20 @@
               "threshold": true,
               "efficiency": 0.33
             }
-          ]
+          ],
+          "provenance": {
+            "sources": [
+              "https://arxiv.org/abs/1601.00284"
+            ],
+            "assumptions": [
+              "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+              "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+              "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+              "No fit to the reported count rate or raw visibility is performed."
+            ]
+          }
         },
-        "plq_version": "0.3.0",
+        "plq_version": "0.4.0",
         "versions": {
           "numpy": "2.3.5",
           "python": "3.12.13"
@@ -544,6 +625,19 @@
       "paper": "ding_2016",
       "source_url": "https://arxiv.org/abs/1601.00284",
       "result": {
+        "evidence": {
+          "category": "paper_parameter_reproduction",
+          "experimental_reproduction": false,
+          "sources": [
+            "https://arxiv.org/abs/1601.00284"
+          ],
+          "assumptions": [
+            "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+            "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+            "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+            "No fit to the reported count rate or raw visibility is performed."
+          ]
+        },
         "format": "plq.source-hom.v1",
         "config": {
           "sources": [
@@ -572,9 +666,20 @@
               "threshold": true,
               "efficiency": 0.33
             }
-          ]
+          ],
+          "provenance": {
+            "sources": [
+              "https://arxiv.org/abs/1601.00284"
+            ],
+            "assumptions": [
+              "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+              "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+              "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+              "No fit to the reported count rate or raw visibility is performed."
+            ]
+          }
         },
-        "plq_version": "0.3.0",
+        "plq_version": "0.4.0",
         "versions": {
           "numpy": "2.3.5",
           "python": "3.12.13"
