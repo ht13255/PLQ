@@ -14,6 +14,8 @@ from .wavepackets import wavepacket_input
 from .qec import get_code, StabilizerCode, MinimumWeightDecoder, ErasureDecoder
 from .simulation import MemoryNoise, simulate_memory
 from .decoding import MaximumLikelihoodDecoder, exact_pauli_memory
+from .experiments import source_hom
+from .sources import number_distribution_from_moments
 
 
 def _unknown(data, allowed):
@@ -63,18 +65,19 @@ def optical_scenario(config):
     for step in config.get("steps",[]):
         step=dict(step)
         operation=step.pop("operation")
-        if operation not in ("bs","phase","loss","thermal_loss","phase_noise","unitary"):
+        if operation not in ("bs","phase","loss","thermal_loss","phase_noise","unitary","transfer"):
             raise ValueError(f"Unsupported optical operation {operation!r}")
-        if operation=="unitary":
-            _unknown(step,{"real","imag","modes"})
+        if operation in ("unitary", "transfer"):
+            _unknown(step,{"real","imag","modes"} | ({"atol"} if operation=="transfer" else set()))
             matrix=np.array(step.pop("real"))+1j*np.array(step.pop("imag",0))
-            circuit.unitary(matrix,**step)
+            getattr(circuit,operation)(matrix,**step)
         else:
             getattr(circuit,operation)(**step)
     result=circuit.run(state)
     payload={"format":"plq.optical-result.v1","versions":{"plq":__version__,"numpy":np.__version__,"python":platform.python_version()},
              "config":config,"model":result.model,"source_omitted_probability":omitted,
              "bath_omitted_probability":result.bath_omitted_probability,
+             "transfer_residuals":result.transfer_residuals,
              "truncation_history":result.truncation_history,"numerical_trace_error":result.numerical_trace_error,
              "initial_total_cutoff":basis.max_photons,"final_total_cutoff":result.state.basis.max_photons,
              "trace_history":result.trace_history,"diagnostics":result.state.diagnostics(),
@@ -153,17 +156,41 @@ def environment_report():
     return {"plq":__version__,"python":platform.python_version(),"packages":packages}
 
 
+def source_hom_scenario(config):
+    _unknown(config, {"sources", "indistinguishability", "multiphoton_model",
+                      "beamsplitter_transmission", "transmissions", "detectors", "precision"})
+    distributions = []
+    for source in config["sources"]:
+        _unknown(source, {"probabilities", "mean_photons", "g2_zero"})
+        if set(source) == {"probabilities"}:
+            distributions.append(source["probabilities"])
+        elif set(source) == {"mean_photons", "g2_zero"}:
+            distributions.append(number_distribution_from_moments(**source))
+        else:
+            raise ValueError("Each source requires probabilities OR both mean_photons and g2_zero")
+    options = {k: config[k] for k in ("beamsplitter_transmission", "transmissions") if k in config}
+    if "detectors" in config:
+        options["detectors"] = [Detector(**item) for item in config["detectors"]]
+    result = source_hom(distributions, config["indistinguishability"],
+                        multiphoton_model=config["multiphoton_model"],
+                        precision=Precision(**config.get("precision", {})), **options)
+    return {"format": "plq.source-hom.v1", "config": config, "plq_version": __version__,
+            "versions": {"numpy": np.__version__, "python": platform.python_version()}, **result}
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description="PLQ photonic logical-qubit simulator")
     parser.add_argument("--version",action="version",version=__version__)
     sub=parser.add_subparsers(dest="command",required=True)
     sub.add_parser("doctor",help="Show the installed core and optional SDK versions")
-    for command in ("optics","memory"):
+    for command in ("optics","memory","source-hom"):
         child=sub.add_parser(command,help=f"Run a {command} JSON scenario")
         child.add_argument("config",type=Path)
         child.add_argument("--output",type=Path)
     hom=sub.add_parser("hom",help="Two-photon interference with overlap and propagation loss")
-    hom.add_argument("--overlap",type=float,default=1)
+    overlap_group=hom.add_mutually_exclusive_group()
+    overlap_group.add_argument("--overlap",type=float,help="Pure-wavepacket amplitude (default: 1)")
+    overlap_group.add_argument("--indistinguishability",type=float,help="Squared overlap M in [0,1], as reported for ideal single-photon HOM")
     hom.add_argument("--transmission",type=float,default=1)
     hom.add_argument("--output",type=Path)
     args=parser.parse_args(argv)
@@ -171,16 +198,23 @@ def main(argv=None):
         if args.command=="doctor":
             payload=environment_report()
         elif args.command=="hom":
-            photons=wavepacket_input(2,[0,1],[[1,args.overlap],[args.overlap,1]])
+            from .numerics import probability
+            overlap = (np.sqrt(probability(args.indistinguishability, "indistinguishability"))
+                       if args.indistinguishability is not None else
+                       (1. if args.overlap is None else args.overlap))
+            photons=wavepacket_input(2,[0,1],[[1,overlap],[overlap,1]])
             circuit=Circuit(2).bs(0,1).loss(0,args.transmission).loss(1,args.transmission)
             p=photons.through(circuit).spatial_probabilities()
-            payload={"coincidence_probability":p.get((1,1),0),"overlap_amplitude":args.overlap,
+            payload={"coincidence_probability":p.get((1,1),0),"overlap_amplitude":overlap,
                      "transmission":args.transmission,"total_probability":sum(p.values()),
                      "plq_version":__version__,"model":"pure-wavepacket HOM with independent vacuum-environment loss"}
         else:
             with args.config.open(encoding="utf-8") as f: config=json.load(f)
-            payload=(optical_scenario(config) if args.command=="optics" else
-                     memory_scenario(config,base_directory=args.config.resolve().parent))
+            if args.command == "source-hom":
+                payload = source_hom_scenario(config)
+            else:
+                payload=(optical_scenario(config) if args.command=="optics" else
+                         memory_scenario(config,base_directory=args.config.resolve().parent))
         encoded=json.dumps(payload,indent=2,allow_nan=False)+"\n"
         if getattr(args,"output",None):
             args.output.parent.mkdir(parents=True,exist_ok=True)

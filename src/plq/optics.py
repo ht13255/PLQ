@@ -206,6 +206,7 @@ class OpticalResult:
     trace_history: tuple
     model: str = "complex128 passive Fock density matrix; vacuum-environment loss; Gaussian phase noise"
     truncation_history: tuple = ()
+    transfer_residuals: tuple = ()
 
     @property
     def bath_omitted_probability(self):
@@ -223,6 +224,7 @@ class Circuit:
     def __init__(self, modes):
         self.modes = integer(modes, "modes", 1)
         self.steps = []
+        self.transfer_residuals = []
 
     def _mode(self, mode):
         if integer(mode, "mode") >= self.modes:
@@ -247,6 +249,33 @@ class Circuit:
         u = [[np.sqrt(t), -np.exp(-1j*phase)*np.sqrt(1-t)],
              [np.exp(1j*phase)*np.sqrt(1-t), np.sqrt(t)]]
         return self.unitary(u, (first, second))
+
+    def transfer(self, matrix, modes=None, *, atol=1e-10):
+        """Passive, possibly lossy field transfer A=U diag(s) Vh.
+
+        Apply Vh, independent vacuum losses s**2, then U. Unlike applying A
+        as a nonunitary ket gate, this retains lost-photon sectors and the
+        environmental which-path information. Only square contractions are
+        supported. Singular-value excess within atol is treated as roundoff;
+        the actual field-matrix residual is recorded in the run result.
+        """
+        if not np.isfinite(atol) or not 0 < atol < .01:
+            raise ValueError("Transfer atol must be finite and in (0, .01)")
+        a = finite_array(matrix, 2)
+        targets = tuple(range(self.modes)) if modes is None else tuple(self._mode(m) for m in modes)
+        if not targets or len(set(targets)) != len(targets) or a.shape != (len(targets),)*2:
+            raise ValueError("Transfer shape or target modes are invalid")
+        u, s, vh = np.linalg.svd(a)
+        if s.max() > 1+atol:
+            raise ValueError("Passive field transfer must be a contraction; gain requires an active-noise model")
+        retained = np.minimum(s, 1.)
+        residual = float(np.linalg.norm((u*retained)@vh-a))
+        self.transfer_residuals.append({"modes": targets, "field_matrix_residual": residual,
+                                        "largest_input_singular_value": float(s.max())})
+        self.unitary(vh, targets)
+        for mode, amplitude in zip(targets, retained):
+            self.loss(mode, float(amplitude*amplitude))
+        return self.unitary(u, targets)
 
     def phase(self, mode, radians):
         if not np.isfinite(radians) or not np.isreal(radians):
@@ -325,7 +354,8 @@ class Circuit:
         model = OpticalResult.model
         if truncations:
             model += "; thermal beam-splitter baths with explicit unnormalized truncation"
-        return OpticalResult(FockState(basis, rho, subnormalized=True), tuple(history), model, tuple(truncations))
+        return OpticalResult(FockState(basis, rho, subnormalized=True), tuple(history), model,
+                             tuple(truncations), tuple(self.transfer_residuals))
 
     def channel(self, basis):
         """Explicit full Kraus map for SMALL optical instruments; count is budgeted."""

@@ -2,7 +2,7 @@
 
 A Python simulator for **photonic circuits, logical qubits and quantum error correction**. Keep photon loss, detector errors, heralding probabilities and numerical cutoffs visible.
 
-**v0.2.0** · Python 3.11+ · NumPy + SciPy · [한국어 사용법](docs/QUICKSTART.ko.md) · [Full guide](docs/GUIDE.md)
+**v0.3.0** · Python 3.11+ · NumPy + SciPy · [Full guide](docs/GUIDE.md) · [Paper benchmarks](docs/PAPER_BENCHMARKS.md)
 
 ## Install and run
 
@@ -43,6 +43,9 @@ print(result.state.diagnostics())
 
 | Goal | Run / API |
 | --- | --- |
+| Try published source parameters | `python -m plq source-hom examples/papers/somaschi_2016.json` |
+| Reproduce paper comparisons and sensitivity runs | `python scripts/paper_benchmarks.py` |
+| Interfere independent mixed spectral states | `python examples/mixed_wavepackets.py` |
 | Lossy optics with detectors and heralding | `python -m plq optics examples/configs/optics.json` |
 | Thermal bath with a reported truncation error | `python examples/thermal_accuracy.py` |
 | Exact small-code Pauli error rate | `python examples/exact_memory.py` |
@@ -52,6 +55,47 @@ print(result.state.diagnostics())
 | Large Clifford syndrome-extraction circuits | `python examples/surface_code_stim.py` (optional SDKs) |
 
 Add `--output results/run.json` to `optics` or `memory` to save the configuration, model, versions and results. Optical JSON now infers the initial cutoff when omitted. A custom code file in a memory JSON is resolved relative to that JSON file.
+
+## Use measured source parameters
+
+```python
+from plq import number_distribution_from_moments, source_hom
+
+# Somaschi et al. source-summary parameters; assume no n>=3 component.
+p = number_distribution_from_moments(mean_photons=0.154, g2_zero=0.0028)
+result = source_hom([p, p], indistinguishability=0.9956,
+                    multiphoton_model="same_wavepacket")
+print(result["parallel"]["coincidence_probability"])  # 8.279879649e-5
+print(result["click_visibility"])  # 0.9930324768
+```
+
+`mean_photons` is the mean photon number, and `g2_zero` is a normalized factorial moment. Neither is simply the probability of two photons. The helper explicitly assumes support **n=0,1,2**, rejects inconsistent moments, and does not infer a unique physical source from two measurements.
+
+Extra photons must have a declared model: `same_wavepacket`, or `orthogonal_noise` (one signal plus one source-specific orthogonal noise photon in the two-photon sector). The latter example gives visibility about **0.9928183329**. These are alternative assumptions, not confidence bounds. Source vacuum, multiphoton events, propagation loss, detector efficiency and dark counts all remain in the calculation. [Conventions and limits](docs/PHYSICS.md#imperfect-number-sources-and-hom-observables).
+
+**Overlap units matter.** `plq hom --overlap 0.7` uses an amplitude. `plq hom --indistinguishability 0.985` uses its square and gives ideal coincidence probability 0.0075. Raw measured HOM visibility also includes the source, detector and normalization convention; it cannot generally be substituted for intrinsic overlap.
+
+The [paper report](docs/PAPER_BENCHMARKS.md) records actual runs using Somaschi, Ding and Menssen parameters, independent formula comparisons, and one-parameter sensitivity runs. It distinguishes source-summary scenarios from experimental reproduction. The supplied pre-etalon Ding efficiency budget predicts 3.658 million counts/s versus the reported 3.7 million; the rounded factors are not fitted.
+
+## Mixed spectra and measured lossy circuits
+
+```python
+import numpy as np
+from plq import Circuit, mixed_wavepacket_input
+
+rho = np.diag([0.7, 0.3])  # one photon's density matrix in a common internal basis
+photons = mixed_wavepacket_input(2, [0, 1], [rho, rho])
+print(photons.through(Circuit(2).bs(0, 1)).spatial_probabilities()[(1, 1)])
+# 0.21, from (1 - Tr(rho @ rho))/2
+
+# A is a field-amplitude transfer matrix, including coherent mixing and loss.
+A = np.array([[0.45 + 0.1j, 0.2], [-0.15j, 0.57 - 0.04j]])
+result = Circuit(2).transfer(A).run([1, 1])
+print(result.state.trace)  # approximately 1; lost-photon sectors are retained
+print(result.transfer_residuals)
+```
+
+Mixed inputs require independent photons in distinct input ports and matrices in the same orthonormal internal basis. Three-photon results retain `Tr(rho1 @ rho2 @ rho3)`, which pairwise HOM overlaps cannot supply. `Circuit.transfer` accepts square passive contractions and implements vacuum loss using a singular-value decomposition. It rejects gain and reports reconstruction residuals. It does not infer a calibration from intensities alone.
 
 ## Accuracy controls that change the calculation
 
@@ -110,11 +154,11 @@ Perceval exchanges numeric lossless optical unitaries. PennyLane uses explicit K
 
 ## Validation and scope
 
-v0.2 fixes rare detector probabilities rounding to zero, large-photon-count overflow, and ambiguous configuration inputs. Regression tests independently compare thermal evolution with a full system-plus-environment Fock calculation, check thermal tails and limiting cases, and compare the new decoder with explicit stabilizer-group probability sums. See the [measured validation report](docs/VALIDATION.md) and [GitHub CI](https://github.com/ht13255/PLQ/actions).
+v0.3 preserves small positive Gram eigenvalues and uses a stable two-wavepacket factorization: a tested coincidence near 1e-14 no longer vanishes at the default tolerance. New tests check mixed-state density invariants, multiphoton source moments, and lossy transfer maps against an independent vacuum dilation. Earlier thermal, detector, decoder and SDK tests remain. See the [measured validation report](docs/VALIDATION.md), [paper comparisons](docs/PAPER_BENCHMARKS.md) and [GitHub CI](https://github.com/ht13255/PLQ/actions).
 
 PLQ is a **finite-model research simulator**, not a hardware-calibrated digital twin. Main calculations use complex128. Defaults are ideal until noise is specified. Ideal encoding, logical gates and recovery are not physical fault-tolerant schedules. Active squeezing, nonlinear optics, detector dead time/afterpulsing and correlated mixed spectral inputs still need additional models. `WavepacketState.through` does not accept thermal baths: a spectral bath population must be specified explicitly.
 
-- [한국어 시작 안내](docs/QUICKSTART.ko.md)
+- [Paper inputs, measured runs and limitations](docs/PAPER_BENCHMARKS.md)
 - [Full examples and SDK guide](docs/GUIDE.md)
 - [Physics, conventions and accuracy limits](docs/PHYSICS.md)
 - [API and JSON formats](docs/API.md)

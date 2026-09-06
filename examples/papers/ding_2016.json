@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {"mean_photons": 0.6336, "g2_zero": 0.009},
+    {"mean_photons": 0.6336, "g2_zero": 0.009}
+  ],
+  "indistinguishability": 0.985,
+  "multiphoton_model": "same_wavepacket",
+  "beamsplitter_transmission": 0.5,
+  "transmissions": [0.216, 0.216],
+  "detectors": [
+    {"threshold": true, "efficiency": 0.33},
+    {"threshold": true, "efficiency": 0.33}
+  ]
+}

@@ -1,7 +1,9 @@
 """Partial distinguishability through explicit orthogonal internal modes."""
 from dataclasses import dataclass
+from itertools import product
+from math import fsum, prod
 import numpy as np
-from .numerics import Precision, finite_array, integer
+from .numerics import Precision, ResourceLimitError, density, finite_array, integer
 from .optics import FockBasis, FockState, Circuit
 
 
@@ -32,6 +34,8 @@ class WavepacketState:
     spatial_modes: int
     internal_modes: int
     gram_factorization_residual: float
+    source_omitted_probability: float = 0.0
+    input_model: str = "pure wavepackets"
 
     def through(self, circuit):
         if circuit.modes != self.spatial_modes:
@@ -51,7 +55,8 @@ class WavepacketState:
             else:
                 raise ValueError(f"Unsupported operation {kind}")
         return WavepacketState(expanded.run(self.state).state, self.spatial_modes, self.internal_modes,
-                               self.gram_factorization_residual)
+                               self.gram_factorization_residual, self.source_omitted_probability,
+                               self.input_model)
 
     def spatial_probabilities(self):
         result = {}
@@ -73,6 +78,60 @@ class WavepacketState:
                                for occ, p in spatial.items())) for out in product(*(d.outcomes for d in detectors))}
 
 
+def _gram_coefficients(gram, photons, precision):
+    g = finite_array(gram, 2)
+    if g.shape != (photons,) * 2 or not np.allclose(g, g.conj().T, atol=precision.atol, rtol=0) or not np.allclose(np.diag(g), 1, atol=precision.atol, rtol=0):
+        raise ValueError("Gram matrix must be Hermitian with a unit diagonal and one row per wavepacket")
+    if np.array_equal(g, np.ones((photons, photons))):
+        return np.ones((1, photons), complex), 0.
+    if photons == 2 and np.array_equal(np.diag(g), [1, 1]) and abs(g[0, 1]) <= 1:
+        # Stable two-packet construction: generic eigensolvers can have order-
+        # epsilon absolute error in an eigenvalue much smaller than one.
+        r = abs(g[0, 1])
+        coefficients = np.array([[1, g[0, 1]], [0, np.sqrt((1-r)*(1+r))]], complex)
+        if r == 1:
+            coefficients = coefficients[:1]
+        return coefficients, float(np.linalg.norm(coefficients.conj().T@coefficients-g))
+    values, vectors = np.linalg.eigh(g)
+    if values.min() < -precision.atol:
+        raise ValueError("Gram matrix is not positive semidefinite")
+    # atol validates the input; it is NOT a physical rank cutoff. Small positive
+    # eigenvalues carry rare distinguishability events, including HOM coincidences.
+    keep = values > 0
+    coefficients = np.sqrt(values[keep])[:, None] * vectors[:, keep].conj().T
+    residual = float(np.linalg.norm(coefficients.conj().T @ coefficients - g))
+    return coefficients, residual
+
+
+def _product_vector(basis, internal_modes, photons):
+    """Normalized bosonic product of (spatial port, internal vector) pairs."""
+    amplitudes = {(0,) * basis.modes: 1.0+0j}
+    for spatial, coefficients in photons:
+        updated = {}
+        for occ, amp in amplitudes.items():
+            for internal, coefficient in enumerate(coefficients):
+                if coefficient == 0:
+                    continue
+                mode = spatial*internal_modes + internal
+                dest = list(occ)
+                dest[mode] += 1
+                key = tuple(dest)
+                updated[key] = updated.get(key, 0j) + amp*coefficient*np.sqrt(dest[mode])
+        # Normalize each intermediate product to avoid factorial overflow at
+        # large occupation. This only rescales the ket, not a source probability.
+        norm = np.sqrt(fsum(abs(a)**2 for a in updated.values()))
+        if norm == 0 or not np.isfinite(norm):
+            raise ValueError("The specified bosonic input has invalid norm")
+        amplitudes = {s: a/norm for s, a in updated.items()}
+    norm = np.sqrt(fsum(abs(a)**2 for a in amplitudes.values()))
+    if norm == 0:
+        raise ValueError("The specified bosonic input has zero norm")
+    vector = np.zeros(basis.dimension, complex)
+    for occ, amplitude in amplitudes.items():
+        vector[basis.index[occ]] = amplitude/norm
+    return vector
+
+
 def wavepacket_input(spatial_modes, input_modes, gram, *, precision=None):
     """One pure internal wavepacket per photon, arbitrary valid COMPLEX Gram matrix.
 
@@ -84,31 +143,97 @@ def wavepacket_input(spatial_modes, input_modes, gram, *, precision=None):
     inputs = tuple(integer(i, "input mode") for i in input_modes)
     if not inputs or any(i >= spatial_modes for i in inputs):
         raise ValueError("At least one valid input photon is required")
-    g = finite_array(gram, 2)
-    if g.shape != (len(inputs),) * 2 or not np.allclose(g, g.conj().T, atol=precision.atol, rtol=0) or not np.allclose(np.diag(g), 1, atol=precision.atol, rtol=0):
-        raise ValueError("Gram matrix must be Hermitian with a unit diagonal and one row per photon")
-    values, vectors = np.linalg.eigh(g)
-    if values.min() < -precision.atol:
-        raise ValueError("Gram matrix is not positive semidefinite")
-    keep = values > precision.atol
-    coefficients = np.sqrt(values[keep])[:, None] * vectors[:, keep].conj().T
-    residual = float(np.linalg.norm(coefficients.conj().T @ coefficients - g))
+    coefficients, residual = _gram_coefficients(gram, len(inputs), precision)
     rank = coefficients.shape[0]
     basis = FockBasis(spatial_modes*rank, len(inputs), precision=precision)
-    amplitudes = {(0,) * basis.modes: 1.0+0j}
-    for photon, spatial in enumerate(inputs):
-        updated = {}
-        for occ, amp in amplitudes.items():
-            for internal in range(rank):
-                mode = spatial*rank + internal
-                dest = list(occ)
-                dest[mode] += 1
-                key = tuple(dest)
-                updated[key] = updated.get(key, 0j) + amp * coefficients[internal, photon] * np.sqrt(dest[mode])
-        amplitudes = updated
-    # The symmetrized product must be normalized, especially for repeated input ports.
-    norm = np.sqrt(sum(abs(a)**2 for a in amplitudes.values()))
-    if norm == 0:
-        raise ValueError("The specified bosonic input has zero norm")
-    state = FockState.amplitudes(basis, {s: a/norm for s, a in amplitudes.items()})
+    state = FockState(basis, _product_vector(basis, rank,
+                      [(port, coefficients[:, j]) for j, port in enumerate(inputs)]))
     return WavepacketState(state, spatial_modes, rank, residual)
+
+
+def mixed_wavepacket_input(spatial_modes, input_modes, internal_states, *, precision=None):
+    """Independent mixed internal states, one photon per DISTINCT input port.
+
+    All matrices use the SAME orthonormal spectral/polarization basis. Embed
+    their tensor product isometrically into Fock space, retaining every density
+    entry. Pairwise purities alone do not determine three-photon interference.
+    Correlated inputs and multiple photons at one port require a joint model.
+    """
+    precision = precision or Precision()
+    spatial_modes = integer(spatial_modes, "spatial_modes", 1)
+    inputs = tuple(integer(i, "input mode") for i in input_modes)
+    if not inputs or len(set(inputs)) != len(inputs) or any(i >= spatial_modes for i in inputs):
+        raise ValueError("Mixed inputs require distinct valid input ports")
+    matrices = tuple(density(rho, atol=precision.atol) for rho in internal_states)
+    if len(matrices) != len(inputs) or len({rho.shape for rho in matrices}) != 1:
+        raise ValueError("One equally sized internal density matrix is required per photon")
+    rank = len(matrices[0])
+    basis = FockBasis(spatial_modes*rank, len(inputs), precision=precision)
+    joint = np.array([[1.0+0j]])
+    for rho in matrices:
+        joint = np.kron(joint, rho)
+    indices = []
+    for internals in product(range(rank), repeat=len(inputs)):
+        occ = [0]*basis.modes
+        for port, internal in zip(inputs, internals):
+            occ[port*rank+internal] = 1
+        indices.append(basis.index[tuple(occ)])
+    rho = np.zeros((basis.dimension, basis.dimension), complex)
+    rho[np.ix_(indices, indices)] = joint
+    return WavepacketState(FockState(basis, rho), spatial_modes, rank, 0.,
+                           input_model="independent mixed internal density matrices")
+
+
+def wavepacket_sources(spatial_modes, input_modes, distributions, gram, *,
+                       multiphoton_model, max_photons=None, precision=None,
+                       max_source_patterns=100000):
+    """Independent number-diagonal sources with distinguishable wavepackets.
+
+    Sources occupy distinct ports. gram describes the signal wavepacket of
+    each source. Select multiphoton_model explicitly:
+      same_wavepacket: all photons from a source share its signal wavepacket;
+      orthogonal_noise: P(2) contains one signal and one noise photon. Each
+        source's noise is orthogonal to all signals AND other sources' noise.
+        This model requires per-source support n<=2.
+    These are specified noise hypotheses, not bounds or an inference from g2.
+    The total cutoff removes positive branches without renormalization.
+    """
+    from .sources import number_distribution
+    precision = precision or Precision()
+    spatial_modes = integer(spatial_modes, "spatial_modes", 1)
+    inputs = tuple(integer(i, "input mode") for i in input_modes)
+    if not inputs or len(set(inputs)) != len(inputs) or any(i >= spatial_modes for i in inputs):
+        raise ValueError("Sources require distinct valid input ports")
+    if multiphoton_model not in ("same_wavepacket", "orthogonal_noise"):
+        raise ValueError("multiphoton_model must be same_wavepacket or orthogonal_noise")
+    arrays = tuple(number_distribution(p, atol=precision.atol) for p in distributions)
+    if len(arrays) != len(inputs):
+        raise ValueError("One number distribution is required per source")
+    support = [np.flatnonzero(p).tolist() for p in arrays]
+    if multiphoton_model == "orthogonal_noise" and any(max(s) > 2 for s in support):
+        raise ValueError("orthogonal_noise supports at most two photons per source")
+    if prod(map(len, support)) > integer(max_source_patterns, "max_source_patterns", 1):
+        raise ResourceLimitError("Source expansion exceeds max_source_patterns")
+    cutoff = sum(max(s) for s in support) if max_photons is None else integer(max_photons, "max_photons")
+    coefficients, residual = _gram_coefficients(gram, len(inputs), precision)
+    signal_rank = coefficients.shape[0]
+    noisy = [j for j, s in enumerate(support) if 2 in s] if multiphoton_model == "orthogonal_noise" else []
+    rank = signal_rank+len(noisy)
+    coefficients = np.pad(coefficients, ((0, len(noisy)), (0, 0)))
+    noise_vectors = {j: np.eye(rank)[signal_rank+k] for k, j in enumerate(noisy)}
+    basis = FockBasis(spatial_modes*rank, cutoff, precision=precision)
+    rho = np.zeros((basis.dimension, basis.dimension), complex)
+    omissions = []
+    for counts in product(*support):
+        weight = prod(p[n] for p, n in zip(arrays, counts))
+        if sum(counts) > cutoff:
+            omissions.append(weight)
+            continue
+        photons = []
+        for j, (port, count) in enumerate(zip(inputs, counts)):
+            photons.extend((port, noise_vectors[j] if k == 1 and j in noisy else coefficients[:, j])
+                           for k in range(count))
+        vector = _product_vector(basis, rank, photons)
+        rho += weight*np.outer(vector, vector.conj())
+    return WavepacketState(FockState(basis, rho, subnormalized=True), spatial_modes,
+                           rank, residual, fsum(omissions), multiphoton_model)

@@ -17,6 +17,9 @@ jobs:
       - run: python -m pytest -q
         env:
           OPENBLAS_NUM_THREADS: '1'
+      - run: python scripts/paper_benchmarks.py --check
+        env:
+          OPENBLAS_NUM_THREADS: '1'
   integrations:
     runs-on: ubuntu-latest
     steps:

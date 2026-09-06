@@ -2,7 +2,7 @@
 
 PLQ is a Python reference simulator connecting **photonic circuits, encoded logical states, quantum error correction, and quantum algorithms**. Its short API keeps physical assumptions visible: photon loss remains loss, heralding keeps its success probability, and an ideal encoded gate is explicitly distinguished from a synthesized optical gate.
 
-**Status: v0.2.0, a tested finite-model research implementation.** It is not a hardware-calibrated digital twin, a complete photonic fault-tolerance compiler, or a promise that every existing QEC software package runs unchanged. See [the compatibility contract](EXTENDING.md) and [physical assumptions](PHYSICS.md).
+**Status: v0.3.0, a tested finite-model research implementation.** It is not a hardware-calibrated digital twin, a complete photonic fault-tolerance compiler, or a promise that every existing QEC software package runs unchanged. See [the compatibility contract](EXTENDING.md), [physical assumptions](PHYSICS.md), and [paper-parameter benchmarks](PAPER_BENCHMARKS.md).
 
 The optical SDK bridge is **Quandela Perceval**. **Pasqal/Pulser uses neutral atoms** and is not a photonic circuit SDK; PLQ does not silently reinterpret its analog Hamiltonians as optics. See the [Perceval documentation](https://perceval.quandela.net/docs/v1.2/index.html) and [Pasqal documentation](https://docs.pasqal.com/pulser/programming/).
 
@@ -129,6 +129,8 @@ print(out.spatial_probabilities()[(1, 1)])  # (1 - overlap**2) / 2 = 0.255
 ```
 
 The Gram matrix is factored into explicit orthogonal internal modes. Internal modes are retained through evolution and summed only when obtaining spatial count probabilities. Complex overlap phases are retained, including genuinely multiphoton effects. This constructor describes products of pure wavepackets, not arbitrary correlated mixed spectral states.
+
+For independent mixed spectra, use `mixed_wavepacket_input`; all density matrices share one orthonormal internal basis. For independent number distributions with partial distinguishability, use `wavepacket_sources` and explicitly choose the extra-photon model. Positive Gram eigenvalues are retained regardless of the validation tolerance. See the [new API examples](API.md#source-and-wavepacket-apis-v03) and `examples/mixed_wavepackets.py`.
 
 ### Detectors and heralding
 

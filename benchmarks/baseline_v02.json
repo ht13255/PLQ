@@ -1,0 +1,39 @@
+{
+  "plq_version": "0.2.0",
+  "paper_single_photon_checks": [
+    {
+      "paper": "somaschi_2016",
+      "M": 0.9956,
+      "probability": 0.0021999999999999568
+    },
+    {
+      "paper": "ding_2016",
+      "M": 0.985,
+      "probability": 0.00749999999999997
+    }
+  ],
+  "rare_hom": [
+    {
+      "overlap_amplitude": 0.999999999999,
+      "probability": 0.0,
+      "analytic": 9.999778782793785e-13
+    },
+    {
+      "overlap_amplitude": 0.99999999999999,
+      "probability": 0.0,
+      "analytic": 9.992007221626358e-15
+    }
+  ],
+  "menssen_triad": [
+    {
+      "phase": 0.0,
+      "p111": 0.19444444444444464
+    },
+    {
+      "phase": 3.141592653589793,
+      "p111": 0.08333333333333343
+    }
+  ],
+  "source_commit": "c4914874603ee7a26ed2d77973f20a8b10eda1e9",
+  "method": "Executed unchanged source from git archive with PYTHONPATH selecting its src directory."
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "plq.paper-parameters.v1",
+  "somaschi_2016": {
+    "title": "Near optimal single photon sources in the solid state",
+    "url": "https://arxiv.org/abs/1510.06499",
+    "version": "arXiv:1510.06499v2",
+    "scenario": "examples/papers/somaschi_2016.json",
+    "reported": {
+      "brightness": {
+        "value": 0.154,
+        "uncertainty": 0.015,
+        "location": "abstract; collected photons per excitation"
+      },
+      "g2_zero": {
+        "value": 0.0028,
+        "uncertainty": 0.0012,
+        "location": "abstract; Fig. 3b at 0.75 P_pi"
+      },
+      "indistinguishability": {
+        "value": 0.9956,
+        "uncertainty": 0.0045,
+        "location": "abstract; corrected overlap"
+      },
+      "uncorrected_overlap": {
+        "value": 0.989,
+        "uncertainty": 0.004,
+        "location": "main text, Fig. 3c discussion"
+      }
+    },
+    "assumptions": [
+      "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+      "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+      "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+      "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+    ]
+  },
+  "ding_2016": {
+    "title": "On-Demand Single Photons with High Extraction Efficiency and Near-Unity Indistinguishability from a Resonantly Driven Quantum Dot in a Micropillar",
+    "url": "https://arxiv.org/abs/1601.00284",
+    "version": "arXiv:1601.00284v2",
+    "scenario": "examples/papers/ding_2016.json",
+    "reported": {
+      "preparation_efficiency": 0.96,
+      "extraction_efficiency": 0.66,
+      "polarization_transmission": 0.5,
+      "path_transmission": 0.6,
+      "fiber_coupling": 0.72,
+      "detector_efficiency": 0.33,
+      "repetition_rate_hz": 81000000,
+      "detected_rate_hz": 3700000,
+      "g2_zero": {
+        "value": 0.009,
+        "uncertainty": 0.001,
+        "location": "Fig. 2c; abstract instead gives uncertainty 0.002"
+      },
+      "indistinguishability": {
+        "value": 0.985,
+        "uncertainty": 0.004,
+        "location": "Fig. 3a-b discussion; 2.1 ns separation"
+      },
+      "raw_visibility": {
+        "value": 0.964,
+        "uncertainty": 0.003,
+        "location": "Fig. 3a-b"
+      }
+    },
+    "assumptions": [
+      "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+      "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+      "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+      "No fit to the reported count rate or raw visibility is performed."
+    ]
+  },
+  "menssen_2017": {
+    "title": "Distinguishability and many-particle interference",
+    "url": "https://arxiv.org/abs/1609.09804",
+    "version": "arXiv:1609.09804v1; published PRL 118, 153603 (2017)",
+    "parameters": {
+      "pairwise_overlap_moduli": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "triad_phases_radians": [
+        0,
+        3.141592653589793
+      ]
+    },
+    "locations": [
+      "main Eqs. (4) and (14), Fig. 4 constant-modulus triad-phase protocol",
+      "supplement Eqs. (17)-(18), symmetric tritter",
+      "supplement mixed-state counting formula, p. 21"
+    ],
+    "assumptions": [
+      "Ideal symmetric tritter formula regression; no digitized experimental count-rate fit.",
+      "Mixed-state eigenvalues 0.7 and 0.3 are selected validation inputs, not measured parameters from the paper."
+    ]
+  },
+  "ollivier_2021": {
+    "title": "Hong-Ou-Mandel Interference with Imperfect Single Photon Sources",
+    "url": "https://arxiv.org/abs/2005.01743",
+    "version": "arXiv:2005.01743v1; published PRL 126, 063602 (2021)",
+    "role": "Motivates explicitly specifying the extra-photon wavepacket. Its separable-noise approximation is not assumed to equal PLQ's conditional P(2) noise hypothesis or click normalization. No experimental reproduction is claimed."
+  }
+}

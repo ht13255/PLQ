@@ -93,6 +93,9 @@ def render_report(report):
               "Main arithmetic is complex128; the 70-decimal permanent is an independent reference only. "
               "Measured deviations are finite test-case results, not global numerical bounds or hardware calibration. "
               "Bath omissions, floating-point drift and Monte Carlo intervals quantify different errors.", "",
+              "The source, mixed-wavepacket, lossy-transfer and rare-interference regression tests are included above. "
+              "The separately executed [paper benchmark report](PAPER_BENCHMARKS.md) records source scenarios, "
+              "parameter sensitivity, the rounded count budget and independent interference formulas.", "",
               "Hosted runs and their source commits are recorded in [GitHub Actions](https://github.com/ht13255/PLQ/actions). "
               "This report describes its generating environment; a local run is not evidence of hosted CI completion.", ""]
     return "\n".join(lines)
@@ -118,6 +121,7 @@ def main():
         tests["elapsed_seconds"] = sum(float(s.attrib.get("time", 0)) for s in suites)
     if not args.core and tests["skipped"]:
         raise RuntimeError("Full validation requires all integrations; tests were skipped")
+    subprocess.run([sys.executable, str(root/"scripts/paper_benchmarks.py")], cwd=root, env=env, check=True)
     hom = Circuit(2).bs(0, 1).run([1, 1]).probabilities()
     rng = np.random.default_rng(3)
     u, _ = np.linalg.qr(rng.normal(size=(3, 3))+1j*rng.normal(size=(3, 3)))

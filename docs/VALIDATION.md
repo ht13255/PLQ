@@ -1,10 +1,10 @@
 # Validation report
 
-Recorded: 2026-09-06T12:12:26.745461+00:00
+Recorded: 2026-09-06T14:33:09.965490+00:00
 
-PLQ 0.2.0; mode: **full**.
+PLQ 0.3.0; mode: **full**.
 
-**81 passed; 0 failures, 0 errors, 0 skipped; 81 collected.**
+**105 passed; 0 failures, 0 errors, 0 skipped; 105 collected.**
 
 The report separates executed checks from unavailable optional SDK checks. Skipped integrations are not counted as passes.
 
@@ -13,7 +13,7 @@ The report separates executed checks from unavailable optional SDK checks. Skipp
 | Check | Measured value |
 | --- | --- |
 | hom coincidence | 0 |
-| partial hom coincidence | 0.2550000000000002 |
+| partial hom coincidence | 0.2550000000000001 |
 | partial hom expected | 0.255 |
 | max fock amplitude error vs 70 decimal permanent | 1.273811594446465e-16 |
 | rare dark click probability | 9.999999999999999e-21 |
@@ -56,10 +56,10 @@ Stim distance-3 rotated memory, three rounds, depolarization and measurement fli
 
 | Package | Version |
 | --- | --- |
-| plq-sim | 0.2.0 |
+| plq-sim | 0.3.0 |
 | python | 3.12.13 |
-| numpy | 2.5.2 |
-| scipy | 1.18.1 |
+| numpy | 2.3.5 |
+| scipy | 1.17.0 |
 | pytest | 9.1.1 |
 | mpmath | 1.3.0 |
 | perceval-quandela | 1.2.4 |
@@ -81,5 +81,7 @@ python scripts/validate.py
 The script sets a single BLAS thread for its pytest subprocess, regenerates this report, `benchmarks/validation.json`, and the direct validated-version list. The full command fails if any tests skip.
 
 Main arithmetic is complex128; the 70-decimal permanent is an independent reference only. Measured deviations are finite test-case results, not global numerical bounds or hardware calibration. Bath omissions, floating-point drift and Monte Carlo intervals quantify different errors.
+
+The source, mixed-wavepacket, lossy-transfer and rare-interference regression tests are included above. The separately executed [paper benchmark report](PAPER_BENCHMARKS.md) records source scenarios, parameter sensitivity, the rounded count budget and independent interference formulas.
 
 Hosted runs and their source commits are recorded in [GitHub Actions](https://github.com/ht13255/PLQ/actions). This report describes its generating environment; a local run is not evidence of hosted CI completion.

@@ -19,3 +19,12 @@ The analytic tests, implementation conventions and finite-model limitations are 
 12. [Iyer and Poulin, Hardness of decoding quantum stabilizer codes](https://arxiv.org/abs/1310.3235): degenerate decoding chooses a stabilizer equivalence class by summing its error probabilities. PLQ implements bounded exhaustive enumeration for the specified independent Pauli model.
 
 The thermal bath and decoding primary sources were checked again for v0.2 on 2026-09-06.
+
+## Paper-parameter work in v0.3
+
+13. [Somaschi et al., Near optimal single photon sources in the solid state](https://arxiv.org/abs/1510.06499), arXiv v2, Nature Photonics 10, 340-345 (2016). Source-summary brightness, g2 and corrected overlap; the fixture distinguishes abstract summaries from a jointly measured operating point.
+14. [Ding et al., On-Demand Single Photons with High Extraction Efficiency and Near-Unity Indistinguishability](https://arxiv.org/abs/1601.00284), arXiv v2, PRL 116, 020401 (2016). Rounded pre-etalon count budget and separately measured source purity/HOM overlap; the scenario preserves this distinction.
+15. [Menssen et al., Distinguishability and many-particle interference](https://arxiv.org/abs/1609.09804), arXiv v1, PRL 118, 153603 (2017). Main Eqs. (4), (14), symmetric-tritter formulas and mixed-state supplement; phase and density-invariant regression checks.
+16. [Ollivier et al., Hong-Ou-Mandel Interference with Imperfect Single Photon Sources](https://arxiv.org/abs/2005.01743), arXiv v1, PRL 126, 063602 (2021). Motivates explicit extra-photon wavepacket assumptions; its separable-noise approximation is not conflated with PLQ's conditional two-photon-sector model.
+
+Inputs, source locations and assumptions are recorded in [paper_parameters.json](../benchmarks/paper_parameters.json). [PAPER_BENCHMARKS.md](PAPER_BENCHMARKS.md) contains the executed comparisons and remaining model limitations. No experimental figure digitization, parameter fitting or full hardware reproduction is claimed.

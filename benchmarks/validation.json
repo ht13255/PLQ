@@ -1,12 +1,12 @@
 {
   "schema": "plq.validation.v2",
-  "generated_utc": "2026-09-06T12:12:26.745461+00:00",
+  "generated_utc": "2026-09-06T14:33:09.965490+00:00",
   "mode": "full",
   "versions": {
-    "plq-sim": "0.2.0",
+    "plq-sim": "0.3.0",
     "python": "3.12.13",
-    "numpy": "2.5.2",
-    "scipy": "1.18.1",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
     "pytest": "9.1.1",
     "mpmath": "1.3.0",
     "perceval-quandela": "1.2.4",
@@ -15,12 +15,12 @@
     "pymatching": "2.4.0"
   },
   "tests": {
-    "tests": 81,
+    "tests": 105,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "passed": 81,
-    "elapsed_seconds": 3.162
+    "passed": 105,
+    "elapsed_seconds": 3.544
   },
   "platform": {
     "system": "Linux",
@@ -28,7 +28,7 @@
   },
   "deterministic_checks": {
     "hom_coincidence": 0.0,
-    "partial_hom_coincidence": 0.25500000000000017,
+    "partial_hom_coincidence": 0.2550000000000001,
     "partial_hom_expected": 0.255,
     "max_fock_amplitude_error_vs_70_decimal_permanent": 1.2738115944464653e-16,
     "rare_dark_click_probability": 1e-20,
@@ -113,7 +113,7 @@
     },
     "model": "phenomenological Pauli memory; ideal mixed-state erasure replacement; final_perfect_round=True; decoder failures count as block failures",
     "versions": {
-      "numpy": "2.5.2",
+      "numpy": "2.3.5",
       "python": "3.12.13"
     }
   },
@@ -130,7 +130,7 @@
     "seed": 123,
     "versions": {
       "stim": "1.16.0",
-      "numpy": "2.5.2",
+      "numpy": "2.3.5",
       "pymatching": "2.4.0"
     },
     "model": "user-supplied Stim circuit and detector error model; any-observable failure per shot"

@@ -1,0 +1,758 @@
+{
+  "schema": "plq.paper-benchmarks.v1",
+  "generated_utc": "2026-09-06T14:33:04.152103+00:00",
+  "versions": {
+    "plq": "0.3.0",
+    "python": "3.12.13",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0"
+  },
+  "source_provenance": {
+    "checkout_head": "c4914874603ee7a26ed2d77973f20a8b10eda1e9",
+    "working_tree_dirty": true,
+    "sha256": {
+      "benchmarks/paper_parameters.json": "344317898a6297b9916e76bcabc59c975505540f707821937324defb0af29627",
+      "examples/papers/somaschi_2016.json": "cbe987c37d0f1b6fd298ba54a44b8a9ad2d02ea7723f316f9bd1967ecac04b20",
+      "examples/papers/ding_2016.json": "d92801d9baba6a4dc8fe73c3cffe0f9e9daf39c00b6c8575638e6f5af9841afb",
+      "scripts/paper_benchmarks.py": "bbc3681581aae3d7d2951eb354baeca5e50dc83dfa88483d2ccee5741e76b2e3",
+      "src/plq/__init__.py": "cb512a2bd890a5fd4a956505b0692fc396e7e2ac40750c18513548c1719361d4",
+      "src/plq/__main__.py": "c394af1c4963327e4797123bab83dc2a7cd352a38996684987328f0fa8269932",
+      "src/plq/adapters/__init__.py": "3854ef9487e32321ebe1d0fd772978f6a270ce7aa435130bf84fb16f0cb68b41",
+      "src/plq/adapters/pennylane.py": "ed40b07b3ccaaa6794c5be95574f7bdbee918462fc7025f00b4f8ed47cc951ef",
+      "src/plq/adapters/perceval.py": "b6ddd96d8fbe58646c8059f28f8463bf2f624f470b8949d6d03da874ed4fb71b",
+      "src/plq/adapters/stim.py": "e705c0a482d858bfc7201ca845d4952142414b7e286d377624c2c8ca545d30aa",
+      "src/plq/channels.py": "fce97f4b3e54548ef6f3eff6c88c51bc7344106ffb518b406a01cbc79e24ef72",
+      "src/plq/cli.py": "88b948fa144cae00338bdffadf43ef7c0f1d16065e9e11435f70eddd8dee6e81",
+      "src/plq/decoding.py": "3c38e5d861f120b1c27c14971c9e767e8bac617ab0705993d96198ea72a91cfe",
+      "src/plq/detectors.py": "999610fd16f799a64e9026fb54a532e7980d2561bee98b446df5ccbfd577083f",
+      "src/plq/experiments.py": "a922e655c2d9b1f2eb29479e20ea1743f6226be998a98289ca0853372e478179",
+      "src/plq/fusion.py": "24894e4aec073faaa70380f5131806f4b03e9866fd43e2a8368fb1238fc34195",
+      "src/plq/numerics.py": "02f8c027baff60780a6fadc26182edb60ddd7192b298e108d196325f693c897a",
+      "src/plq/optics.py": "88bf23e91040d8a75d7dd10d1cb88a4c73608ee8953c9c9dcd70354e86b3c44d",
+      "src/plq/qec.py": "7800a9906c1610d967ceda24f932926a54826895b3cb1f5a7222fb986a85c6c0",
+      "src/plq/recovery.py": "12fa4ce9718a9589575607a4f19fadbb79151198b5c20bf33f1c0d519fc7c07d",
+      "src/plq/reference.py": "c89062f5f351a796aa0554b8fa3a143dc56604f68f695d1a0ab878af826a66c2",
+      "src/plq/simulation.py": "3fd34c4f83d2adfe98047538176c47182c89f45015850934864f94d0f7542195",
+      "src/plq/sources.py": "947308bd6ceddf6142d6d47323671b6691cf3997e569dcc9e37fb26d458ec7e3",
+      "src/plq/thermal.py": "9815642033871671a59975421b66957c81565976f5b78cfb3e1b50d902d9cdcb",
+      "src/plq/wavepackets.py": "225aa73b670a89be341d73f4200bf82ab70820ebfd9d769c7ff0cbcd7142c9da"
+    }
+  },
+  "references": {
+    "schema": "plq.paper-parameters.v1",
+    "somaschi_2016": {
+      "title": "Near optimal single photon sources in the solid state",
+      "url": "https://arxiv.org/abs/1510.06499",
+      "version": "arXiv:1510.06499v2",
+      "scenario": "examples/papers/somaschi_2016.json",
+      "reported": {
+        "brightness": {
+          "value": 0.154,
+          "uncertainty": 0.015,
+          "location": "abstract; collected photons per excitation"
+        },
+        "g2_zero": {
+          "value": 0.0028,
+          "uncertainty": 0.0012,
+          "location": "abstract; Fig. 3b at 0.75 P_pi"
+        },
+        "indistinguishability": {
+          "value": 0.9956,
+          "uncertainty": 0.0045,
+          "location": "abstract; corrected overlap"
+        },
+        "uncorrected_overlap": {
+          "value": 0.989,
+          "uncertainty": 0.004,
+          "location": "main text, Fig. 3c discussion"
+        }
+      },
+      "assumptions": [
+        "Abstract-summary source scenario; the quoted values are not a jointly calibrated single operating point.",
+        "The body separately quotes brightness 0.16 +/- 0.02; preserve the abstract value without silently merging the two.",
+        "Finite support n<=2; independent pulses; ideal balanced optics and threshold detectors are scenario assumptions.",
+        "Published uncorrected overlap is context, not the direct two-input click-visibility target."
+      ]
+    },
+    "ding_2016": {
+      "title": "On-Demand Single Photons with High Extraction Efficiency and Near-Unity Indistinguishability from a Resonantly Driven Quantum Dot in a Micropillar",
+      "url": "https://arxiv.org/abs/1601.00284",
+      "version": "arXiv:1601.00284v2",
+      "scenario": "examples/papers/ding_2016.json",
+      "reported": {
+        "preparation_efficiency": 0.96,
+        "extraction_efficiency": 0.66,
+        "polarization_transmission": 0.5,
+        "path_transmission": 0.6,
+        "fiber_coupling": 0.72,
+        "detector_efficiency": 0.33,
+        "repetition_rate_hz": 81000000,
+        "detected_rate_hz": 3700000,
+        "g2_zero": {
+          "value": 0.009,
+          "uncertainty": 0.001,
+          "location": "Fig. 2c; abstract instead gives uncertainty 0.002"
+        },
+        "indistinguishability": {
+          "value": 0.985,
+          "uncertainty": 0.004,
+          "location": "Fig. 3a-b discussion; 2.1 ns separation"
+        },
+        "raw_visibility": {
+          "value": 0.964,
+          "uncertainty": 0.003,
+          "location": "Fig. 3a-b"
+        }
+      },
+      "assumptions": [
+        "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+        "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+        "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+        "No fit to the reported count rate or raw visibility is performed."
+      ]
+    },
+    "menssen_2017": {
+      "title": "Distinguishability and many-particle interference",
+      "url": "https://arxiv.org/abs/1609.09804",
+      "version": "arXiv:1609.09804v1; published PRL 118, 153603 (2017)",
+      "parameters": {
+        "pairwise_overlap_moduli": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "triad_phases_radians": [
+          0,
+          3.141592653589793
+        ]
+      },
+      "locations": [
+        "main Eqs. (4) and (14), Fig. 4 constant-modulus triad-phase protocol",
+        "supplement Eqs. (17)-(18), symmetric tritter",
+        "supplement mixed-state counting formula, p. 21"
+      ],
+      "assumptions": [
+        "Ideal symmetric tritter formula regression; no digitized experimental count-rate fit.",
+        "Mixed-state eigenvalues 0.7 and 0.3 are selected validation inputs, not measured parameters from the paper."
+      ]
+    },
+    "ollivier_2021": {
+      "title": "Hong-Ou-Mandel Interference with Imperfect Single Photon Sources",
+      "url": "https://arxiv.org/abs/2005.01743",
+      "version": "arXiv:2005.01743v1; published PRL 126, 063602 (2021)",
+      "role": "Motivates explicitly specifying the extra-photon wavepacket. Its separable-noise approximation is not assumed to equal PLQ's conditional P(2) noise hypothesis or click normalization. No experimental reproduction is claimed."
+    }
+  },
+  "baseline": {
+    "plq_version": "0.2.0",
+    "paper_single_photon_checks": [
+      {
+        "paper": "somaschi_2016",
+        "M": 0.9956,
+        "probability": 0.0021999999999999568
+      },
+      {
+        "paper": "ding_2016",
+        "M": 0.985,
+        "probability": 0.00749999999999997
+      }
+    ],
+    "rare_hom": [
+      {
+        "overlap_amplitude": 0.999999999999,
+        "probability": 0.0,
+        "analytic": 9.999778782793785e-13
+      },
+      {
+        "overlap_amplitude": 0.99999999999999,
+        "probability": 0.0,
+        "analytic": 9.992007221626358e-15
+      }
+    ],
+    "menssen_triad": [
+      {
+        "phase": 0.0,
+        "p111": 0.19444444444444464
+      },
+      {
+        "phase": 3.141592653589793,
+        "p111": 0.08333333333333343
+      }
+    ],
+    "source_commit": "c4914874603ee7a26ed2d77973f20a8b10eda1e9",
+    "method": "Executed unchanged source from git archive with PYTHONPATH selecting its src directory."
+  },
+  "source_cases": [
+    {
+      "paper": "somaschi_2016",
+      "source_url": "https://arxiv.org/abs/1510.06499",
+      "result": {
+        "format": "plq.source-hom.v1",
+        "config": {
+          "sources": [
+            {
+              "mean_photons": 0.154,
+              "g2_zero": 0.0028
+            },
+            {
+              "mean_photons": 0.154,
+              "g2_zero": 0.0028
+            }
+          ],
+          "indistinguishability": 0.9956,
+          "multiphoton_model": "same_wavepacket",
+          "beamsplitter_transmission": 0.5,
+          "detectors": [
+            {
+              "threshold": true
+            },
+            {
+              "threshold": true
+            }
+          ]
+        },
+        "plq_version": "0.3.0",
+        "versions": {
+          "numpy": "2.3.5",
+          "python": "3.12.13"
+        },
+        "parallel": {
+          "coincidence_probability": 8.279879648885052e-05,
+          "singles_probabilities": [
+            0.14215530961664474,
+            0.14215530961664474
+          ],
+          "intensity_cross_moment": 8.537759999999899e-05,
+          "mean_output_photons": [
+            0.15400000000000003,
+            0.15400000000000003
+          ],
+          "total_probability": 1.0,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 70
+        },
+        "distinguishable": {
+          "coincidence_probability": 0.011883533610199453,
+          "singles_probabilities": [
+            0.1480556770235001,
+            0.1480556770235001
+          ],
+          "intensity_cross_moment": 0.011891202400000007,
+          "mean_output_photons": [
+            0.15400000000000005,
+            0.15400000000000005
+          ],
+          "total_probability": 1.0000000000000002,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 70
+        },
+        "click_visibility": 0.993032476769554,
+        "source_moments": [
+          {
+            "mean_photons": 0.154,
+            "factorial_second_moment": 6.64048e-05,
+            "g2_zero": 0.0028
+          },
+          {
+            "mean_photons": 0.154,
+            "factorial_second_moment": 6.64048e-05,
+            "g2_zero": 0.0028
+          }
+        ],
+        "single_photon_indistinguishability": 0.9956,
+        "multiphoton_model": "same_wavepacket",
+        "model": "independent number-diagonal sources; explicit internal modes; threshold clicks",
+        "assumptions": [
+          "Each single-photon component is a pure wavepacket.",
+          "The declared number support is exact; no higher photon numbers are inferred.",
+          "Pulse-to-pulse correlations and detector recovery are not modeled.",
+          "The distinguishable reference is a separate two-input experiment, not a pulsed histogram normalization."
+        ]
+      },
+      "independent_intensity_cross_moment": 8.537759999999867e-05,
+      "intensity_moment_absolute_error": 3.2526065174565133e-19,
+      "one_parameter_sensitivity": [
+        {
+          "parameter": "indistinguishability",
+          "direction": -1,
+          "value": 0.9911000000000001,
+          "click_visibility": 0.9885440816340051
+        },
+        {
+          "parameter": "indistinguishability",
+          "direction": 1,
+          "value": 1.0,
+          "click_visibility": 0.9974211297914336
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": -1,
+          "value": 0.0016,
+          "click_visibility": 0.9941314972324611
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": 1,
+          "value": 0.004,
+          "click_visibility": 0.9919354701749076
+        }
+      ]
+    },
+    {
+      "paper": "somaschi_2016",
+      "source_url": "https://arxiv.org/abs/1510.06499",
+      "result": {
+        "format": "plq.source-hom.v1",
+        "config": {
+          "sources": [
+            {
+              "mean_photons": 0.154,
+              "g2_zero": 0.0028
+            },
+            {
+              "mean_photons": 0.154,
+              "g2_zero": 0.0028
+            }
+          ],
+          "indistinguishability": 0.9956,
+          "multiphoton_model": "orthogonal_noise",
+          "beamsplitter_transmission": 0.5,
+          "detectors": [
+            {
+              "threshold": true
+            },
+            {
+              "threshold": true
+            }
+          ]
+        },
+        "plq_version": "0.3.0",
+        "versions": {
+          "numpy": "2.3.5",
+          "python": "3.12.13"
+        },
+        "parallel": {
+          "coincidence_probability": 8.534358293767438e-05,
+          "singles_probabilities": [
+            0.1421565820098692,
+            0.1421565820098692
+          ],
+          "intensity_cross_moment": 9.04677228793547e-05,
+          "mean_output_photons": [
+            0.15400000000000003,
+            0.15400000000000003
+          ],
+          "total_probability": 1.0,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 495
+        },
+        "distinguishable": {
+          "coincidence_probability": 0.011883533610199453,
+          "singles_probabilities": [
+            0.1480556770235001,
+            0.1480556770235001
+          ],
+          "intensity_cross_moment": 0.011891202400000007,
+          "mean_output_photons": [
+            0.15400000000000005,
+            0.15400000000000005
+          ],
+          "total_probability": 1.0000000000000002,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 495
+        },
+        "click_visibility": 0.9928183328513982,
+        "source_moments": [
+          {
+            "mean_photons": 0.154,
+            "factorial_second_moment": 6.64048e-05,
+            "g2_zero": 0.0028
+          },
+          {
+            "mean_photons": 0.154,
+            "factorial_second_moment": 6.64048e-05,
+            "g2_zero": 0.0028
+          }
+        ],
+        "single_photon_indistinguishability": 0.9956,
+        "multiphoton_model": "orthogonal_noise",
+        "model": "independent number-diagonal sources; explicit internal modes; threshold clicks",
+        "assumptions": [
+          "Each single-photon component is a pure wavepacket.",
+          "The declared number support is exact; no higher photon numbers are inferred.",
+          "Pulse-to-pulse correlations and detector recovery are not modeled.",
+          "The distinguishable reference is a separate two-input experiment, not a pulsed histogram normalization."
+        ]
+      },
+      "independent_intensity_cross_moment": 9.046772287935219e-05,
+      "intensity_moment_absolute_error": 2.507217523872729e-18,
+      "one_parameter_sensitivity": [
+        {
+          "parameter": "indistinguishability",
+          "direction": -1,
+          "value": 0.9911000000000001,
+          "click_visibility": 0.9883309056739862
+        },
+        {
+          "parameter": "indistinguishability",
+          "direction": 1,
+          "value": 1.0,
+          "click_visibility": 0.9972060394248675
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": -1,
+          "value": 0.0016,
+          "click_visibility": 0.9940090051580414
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": 1,
+          "value": 0.004,
+          "click_visibility": 0.9916298600329289
+        }
+      ]
+    },
+    {
+      "paper": "ding_2016",
+      "source_url": "https://arxiv.org/abs/1601.00284",
+      "result": {
+        "format": "plq.source-hom.v1",
+        "config": {
+          "sources": [
+            {
+              "mean_photons": 0.6336,
+              "g2_zero": 0.009
+            },
+            {
+              "mean_photons": 0.6336,
+              "g2_zero": 0.009
+            }
+          ],
+          "indistinguishability": 0.985,
+          "multiphoton_model": "same_wavepacket",
+          "beamsplitter_transmission": 0.5,
+          "transmissions": [
+            0.216,
+            0.216
+          ],
+          "detectors": [
+            {
+              "threshold": true,
+              "efficiency": 0.33
+            },
+            {
+              "threshold": true,
+              "efficiency": 0.33
+            }
+          ]
+        },
+        "plq_version": "0.3.0",
+        "versions": {
+          "numpy": "2.3.5",
+          "python": "3.12.13"
+        },
+        "parallel": {
+          "coincidence_probability": 2.4262904036692717e-05,
+          "singles_probabilities": [
+            0.04414652666117134,
+            0.04414652666117134
+          ],
+          "intensity_cross_moment": 0.00022476003213311953,
+          "mean_output_photons": [
+            0.13685760000000005,
+            0.13685760000000005
+          ],
+          "total_probability": 1.0000000000000002,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 70
+        },
+        "distinguishable": {
+          "coincidence_probability": 0.0010284055549933215,
+          "singles_probabilities": [
+            0.04464859798664966,
+            0.04464859798664966
+          ],
+          "intensity_cross_moment": 0.009449286350929922,
+          "mean_output_photons": [
+            0.13685760000000005,
+            0.13685760000000005
+          ],
+          "total_probability": 1.0000000000000004,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 70
+        },
+        "click_visibility": 0.9764072608137067,
+        "source_moments": [
+          {
+            "mean_photons": 0.6336,
+            "factorial_second_moment": 0.00361304064,
+            "g2_zero": 0.009
+          },
+          {
+            "mean_photons": 0.6336,
+            "factorial_second_moment": 0.00361304064,
+            "g2_zero": 0.009
+          }
+        ],
+        "single_photon_indistinguishability": 0.985,
+        "multiphoton_model": "same_wavepacket",
+        "model": "independent number-diagonal sources; explicit internal modes; threshold clicks",
+        "assumptions": [
+          "Each single-photon component is a pure wavepacket.",
+          "The declared number support is exact; no higher photon numbers are inferred.",
+          "Pulse-to-pulse correlations and detector recovery are not modeled.",
+          "The distinguishable reference is a separate two-input experiment, not a pulsed histogram normalization."
+        ]
+      },
+      "independent_intensity_cross_moment": 0.000224760032133121,
+      "intensity_moment_absolute_error": 1.463672932855431e-18,
+      "one_parameter_sensitivity": [
+        {
+          "parameter": "indistinguishability",
+          "direction": -1,
+          "value": 0.981,
+          "click_visibility": 0.9724421551458546
+        },
+        {
+          "parameter": "indistinguishability",
+          "direction": 1,
+          "value": 0.989,
+          "click_visibility": 0.980372366481886
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": -1,
+          "value": 0.008,
+          "click_visibility": 0.9773549436606078
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": 1,
+          "value": 0.009999999999999998,
+          "click_visibility": 0.9754613281552292
+        }
+      ]
+    },
+    {
+      "paper": "ding_2016",
+      "source_url": "https://arxiv.org/abs/1601.00284",
+      "result": {
+        "format": "plq.source-hom.v1",
+        "config": {
+          "sources": [
+            {
+              "mean_photons": 0.6336,
+              "g2_zero": 0.009
+            },
+            {
+              "mean_photons": 0.6336,
+              "g2_zero": 0.009
+            }
+          ],
+          "indistinguishability": 0.985,
+          "multiphoton_model": "orthogonal_noise",
+          "beamsplitter_transmission": 0.5,
+          "transmissions": [
+            0.216,
+            0.216
+          ],
+          "detectors": [
+            {
+              "threshold": true,
+              "efficiency": 0.33
+            },
+            {
+              "threshold": true,
+              "efficiency": 0.33
+            }
+          ]
+        },
+        "plq_version": "0.3.0",
+        "versions": {
+          "numpy": "2.3.5",
+          "python": "3.12.13"
+        },
+        "parallel": {
+          "coincidence_probability": 2.9778389648309642e-05,
+          "singles_probabilities": [
+            0.04414928440397715,
+            0.04414928440397714
+          ],
+          "intensity_cross_moment": 0.0002772869816893586,
+          "mean_output_photons": [
+            0.13685760000000005,
+            0.13685760000000002
+          ],
+          "total_probability": 1.0000000000000002,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 495
+        },
+        "distinguishable": {
+          "coincidence_probability": 0.0010284055549933215,
+          "singles_probabilities": [
+            0.044648597986649656,
+            0.04464859798664967
+          ],
+          "intensity_cross_moment": 0.009449286350929922,
+          "mean_output_photons": [
+            0.13685760000000002,
+            0.13685760000000005
+          ],
+          "total_probability": 1.0000000000000007,
+          "source_omitted_probability": 0.0,
+          "gram_factorization_residual": 0.0,
+          "hilbert_dimension": 495
+        },
+        "click_visibility": 0.9710441182433102,
+        "source_moments": [
+          {
+            "mean_photons": 0.6336,
+            "factorial_second_moment": 0.00361304064,
+            "g2_zero": 0.009
+          },
+          {
+            "mean_photons": 0.6336,
+            "factorial_second_moment": 0.00361304064,
+            "g2_zero": 0.009
+          }
+        ],
+        "single_photon_indistinguishability": 0.985,
+        "multiphoton_model": "orthogonal_noise",
+        "model": "independent number-diagonal sources; explicit internal modes; threshold clicks",
+        "assumptions": [
+          "Each single-photon component is a pure wavepacket.",
+          "The declared number support is exact; no higher photon numbers are inferred.",
+          "Pulse-to-pulse correlations and detector recovery are not modeled.",
+          "The distinguishable reference is a separate two-input experiment, not a pulsed histogram normalization."
+        ]
+      },
+      "independent_intensity_cross_moment": 0.00027728698168935834,
+      "intensity_moment_absolute_error": 2.710505431213761e-19,
+      "one_parameter_sensitivity": [
+        {
+          "parameter": "indistinguishability",
+          "direction": -1,
+          "value": 0.981,
+          "click_visibility": 0.9671007918748092
+        },
+        {
+          "parameter": "indistinguishability",
+          "direction": 1,
+          "value": 0.989,
+          "click_visibility": 0.9749874446118107
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": -1,
+          "value": 0.008,
+          "click_visibility": 0.9725824573842409
+        },
+        {
+          "parameter": "g2_zero",
+          "direction": 1,
+          "value": 0.009999999999999998,
+          "click_visibility": 0.9695088292909101
+        }
+      ]
+    }
+  ],
+  "ding_rate_budget": {
+    "simulated_rate_hz": 3658203.648000001,
+    "independent_rate_hz": 3658203.6479999996,
+    "reported_rate_hz": 3700000,
+    "relative_difference": -0.011296311351351118,
+    "interpretation": "Rounded pre-etalon efficiency budget; no parameter fitting or calibrated error bar."
+  },
+  "menssen_triad_sweep": [
+    {
+      "triad_phase": 0.0,
+      "p111": 0.1944444444444447,
+      "analytic_p111": 0.19444444444444445,
+      "absolute_error": 2.498001805406602e-16
+    },
+    {
+      "triad_phase": 0.7853981633974483,
+      "p111": 0.17817259895480822,
+      "analytic_p111": 0.1781725989548082,
+      "absolute_error": 2.7755575615628914e-17
+    },
+    {
+      "triad_phase": 1.5707963267948966,
+      "p111": 0.13888888888888898,
+      "analytic_p111": 0.1388888888888889,
+      "absolute_error": 8.326672684688674e-17
+    },
+    {
+      "triad_phase": 2.356194490192345,
+      "p111": 0.09960517882296968,
+      "analytic_p111": 0.09960517882296958,
+      "absolute_error": 9.71445146547012e-17
+    },
+    {
+      "triad_phase": 3.141592653589793,
+      "p111": 0.08333333333333341,
+      "analytic_p111": 0.08333333333333333,
+      "absolute_error": 8.326672684688674e-17
+    },
+    {
+      "triad_phase": 3.9269908169872414,
+      "p111": 0.09960517882296963,
+      "analytic_p111": 0.09960517882296957,
+      "absolute_error": 5.551115123125783e-17
+    },
+    {
+      "triad_phase": 4.71238898038469,
+      "p111": 0.13888888888888892,
+      "analytic_p111": 0.1388888888888889,
+      "absolute_error": 2.7755575615628914e-17
+    },
+    {
+      "triad_phase": 5.497787143782138,
+      "p111": 0.17817259895480828,
+      "analytic_p111": 0.1781725989548082,
+      "absolute_error": 8.326672684688674e-17
+    },
+    {
+      "triad_phase": 6.283185307179586,
+      "p111": 0.19444444444444461,
+      "analytic_p111": 0.19444444444444445,
+      "absolute_error": 1.6653345369377348e-16
+    }
+  ],
+  "mixed_state_check": {
+    "chosen_internal_density_eigenvalues": [
+      0.7,
+      0.3
+    ],
+    "pairwise_trace_overlap": 0.58,
+    "three_density_trace": 0.36999999999999994,
+    "p111": 0.19333333333333344,
+    "analytic_p111": 0.19333333333333333,
+    "absolute_error": 1.1102230246251565e-16,
+    "incorrect_pairwise_only_surrogate_p111": 0.22520659561782527,
+    "interpretation": "Selected validation state, not a measured paper spectrum."
+  },
+  "rare_hom": [
+    {
+      "overlap_amplitude": 0.999999999999,
+      "p11": 9.999778782793789e-13,
+      "analytic_p11": 9.999778782793785e-13,
+      "relative_error": 4.440892098500626e-16
+    },
+    {
+      "overlap_amplitude": 0.99999999999999,
+      "p11": 9.99200722162636e-15,
+      "analytic_p11": 9.992007221626358e-15,
+      "relative_error": 2.220446049250313e-16
+    }
+  ],
+  "scope": "Source-summary sensitivity scenarios, a rounded count budget, and formula regressions. No full experimental reproduction or hardware calibration."
+}

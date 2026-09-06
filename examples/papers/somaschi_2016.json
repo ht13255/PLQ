@@ -1,0 +1,10 @@
+{
+  "sources": [
+    {"mean_photons": 0.154, "g2_zero": 0.0028},
+    {"mean_photons": 0.154, "g2_zero": 0.0028}
+  ],
+  "indistinguishability": 0.9956,
+  "multiphoton_model": "same_wavepacket",
+  "beamsplitter_transmission": 0.5,
+  "detectors": [{"threshold": true}, {"threshold": true}]
+}

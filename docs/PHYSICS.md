@@ -52,7 +52,7 @@ Mean uses radians; covariance uses radians squared. Common-mode fluctuations can
 
 `wavepacket_input` describes a product of pure normalized internal photon states with $G_{ij}=\langle\phi_i|\phi_j\rangle$. The full complex Gram matrix must be Hermitian, positive semidefinite and unit-diagonal. A factorization $C^\dagger C=G$ creates photons in explicit orthogonal internal modes. Optical evolution becomes $U\otimes I$; loss has distinct environment modes; spatial phase noise is shared by the internal modes at that port. Internal occupations are summed only for final spatial counting. This follows the explicit internal-mode construction described by [Osca and Vala](https://arxiv.org/abs/2208.03250).
 
-Eigenvalues at or below `Precision.atol` are removed during factorization; the reconstruction error is reported as `gram_factorization_residual`. Repeated input ports require normalization of the symmetrized creation-operator product. Arbitrary mixed or correlated spectral states are outside this constructor's model. Spatial count probabilities cannot be reinterpreted as a coherent spatial state vector.
+Positive eigenvalues are retained, including values below `Precision.atol`; that tolerance validates input and does not select physical rank. Negative eigenvalues within the input tolerance are treated as numerical residuals, and the reconstruction error is reported as `gram_factorization_residual`. For two unit-diagonal wavepackets the factor uses the stable product `(1-abs(g))*(1+abs(g))`, avoiding loss of relative accuracy in a tiny eigensolver eigenvalue. General many-photon factorizations have only floating-point absolute accuracy; their reported residual is not a rare-event relative-error bound. Repeated input ports require normalization of the symmetrized creation-operator product. This constructor is for pure packets; independent mixed spectra use `mixed_wavepacket_input`. Spatial count probabilities cannot be reinterpreted as a coherent spatial state vector.
 
 `gaussian_gram` assumes equal-width temporal wavefunctions
 
@@ -63,6 +63,50 @@ Thus $\sigma$ is the **intensity** standard deviation in seconds and $\omega$ us
 $$G_{ij}=\exp[-\Delta t^2/(8\sigma^2)-\sigma^2\Delta\omega^2/2+i\Delta\omega(t_i+t_j)/2].$$
 
 Subtract a common carrier to improve conditioning. Frequency-dependent optics and spectrally/time-resolved detection require an additional model.
+
+## Independent mixed internal states
+
+`mixed_wavepacket_input` embeds the tensor product of internal density matrices into the sector with one photon in each distinct input port. All matrices use the same orthonormal spectral/polarization basis. This is an isometry, so trace, coherences and positivity are retained without choosing pure packets that merely fit pairwise data.
+
+For two independent photons, the balanced HOM coincidence is
+
+$$P(1,1)=\frac{1-\operatorname{Tr}(\rho_1\rho_2)}{2}.$$
+
+For a symmetric tritter with three independent photons,
+
+$$P(1,1,1)=\frac{2-\sum_{i<j}\operatorname{Tr}(\rho_i\rho_j)+4\operatorname{Re}\operatorname{Tr}(\rho_1\rho_2\rho_3)}{9}.$$
+
+The pairwise traces cannot generally determine the third-order trace. This formula provides an independent check using [Menssen et al.'s mixed-state treatment](https://arxiv.org/abs/1609.09804). Spectral correlations between photons require a joint input model and are not synthesized by this constructor. Internal degrees of freedom remain unresolved by the spatial detector model.
+
+## Imperfect number sources and HOM observables
+
+Let $\mu=\langle n\rangle$ and $g=\langle n(n-1)\rangle/\mu^2$. Under the explicit assumption $P(n\ge3)=0$,
+
+$$p_2=\frac{g\mu^2}{2},\qquad p_1=\mu-g\mu^2,\qquad p_0=1-\mu+\frac{g\mu^2}{2}.$$
+
+The source helper rejects negative probabilities. These moments alone do not identify a general photon-number distribution, spectral wavefunction or noise mechanism. Extraction efficiency, probability of at least one photon, photon-number mean and a finite-efficiency HBT click ratio have different definitions.
+
+`wavepacket_sources` takes independent number distributions at distinct ports. `same_wavepacket` repeats a source's signal wavepacket for each photon. In `orthogonal_noise`, the two-photon sector has one signal and one extra photon orthogonal to every signal and every other source's noise. The one-photon sector remains a signal. Each branch is the normalized bosonic creation-operator product, then weighted by its absolute source probability. A declared total-photon cutoff removes positive branches with a reported tail and no renormalization.
+
+These hypotheses intentionally require a choice. [Ollivier et al.](https://arxiv.org/abs/2005.01743) shows that extra-photon overlap changes the relation between g2 and HOM visibility. PLQ's conditional P(2) hypothesis is not the paper's weak separable-noise field; their visibility correction is not silently applied here.
+
+An independent operator-moment check is available for arbitrary beam-splitter power transmission $T$, $R=1-T$. With input means $\mu_a,\mu_b$, factorial second moments $f_a,f_b$, and the exchange term $J$,
+
+$$\langle n_0 n_1\rangle=TR(f_a+f_b)+(T^2+R^2)\mu_a\mu_b-2TRJ.$$
+
+For the same-wavepacket model, $J=M\mu_a\mu_b$. For source-specific orthogonal noise with support n<=2, $J=M(p_{1a}+p_{2a})(p_{1b}+p_{2b})$. Independent output loss multiplies this cross moment by $\eta_0\eta_1$. This optical moment is not the threshold click coincidence: the latter applies the full detector response to every spatial occupation, including events containing three or four photons.
+
+`source_hom` reports $1-C_{\parallel}/C_{\perp}$ from two direct two-input runs with identical source statistics and detectors. It also reports absolute coincidences. Intrinsic single-photon overlap, intensity-normalized contrasts and time-bin histogram visibilities must not be interchanged. Paper fixtures state which efficiencies and operating points are combined; missing spectral/pulse calibration is not hidden by fitting.
+
+## Calibrated passive field transfer
+
+A square complex transfer matrix $A$ with singular values at most one defines a vacuum-environment passive attenuation channel. `Circuit.transfer` uses
+
+$$A=U\operatorname{diag}(s)V^\dagger$$
+
+and applies $V^\dagger$, independent losses with photon survival $s_j^2$, then $U$. The loss eigenmodes need not be the physical rails; the resulting map includes coherent mixing and environment information. Applying only $A$ to a ket would omit lost-photon branches and is not equivalent. The implementation is checked against an independently constructed full Halmos unitary dilation with vacuum ancillary modes and an explicit environment trace.
+
+Singular-value excess within the declared absolute tolerance is clipped to one and the actual field reconstruction residual is reported. Larger excess is rejected because amplification needs an active environment model. A complex field matrix, including phase calibration, is required; intensity-only data cannot determine it uniquely. This constructor does not model frequency-dependent scattering, thermal input baths or detector effects on its own.
 
 ## Detectors and destructive heralding
 
