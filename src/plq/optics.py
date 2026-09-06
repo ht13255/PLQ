@@ -205,6 +205,15 @@ class OpticalResult:
     state: FockState
     trace_history: tuple
     model: str = "complex128 passive Fock density matrix; vacuum-environment loss; Gaussian phase noise"
+    truncation_history: tuple = ()
+
+    @property
+    def bath_omitted_probability(self):
+        return float(sum(item["omitted_weight"] for item in self.truncation_history))
+
+    @property
+    def numerical_trace_error(self):
+        return abs(self.state.trace - (self.trace_history[0]-self.bath_omitted_probability))
 
     def probabilities(self):
         return self.state.probabilities()
@@ -248,6 +257,18 @@ class Circuit:
         self.steps.append(("loss", (self._mode(mode), probability(transmission, "transmission"))))
         return self
 
+    def thermal_loss(self, mode, transmission, mean_photons, *, bath_cutoff=None, tail_tolerance=1e-12):
+        """Mix with an independent thermal bath, retaining its omitted weight.
+
+        The total system cutoff grows by bath_cutoff at this step. If omitted,
+        the bath cutoff is chosen from its geometric tail <= tail_tolerance.
+        This is a thermal attenuator, not a detector dark-count model.
+        """
+        from .thermal import ThermalBath
+        bath = ThermalBath.create(mean_photons, bath_cutoff, tail_tolerance)
+        self.steps.append(("thermal_loss", (self._mode(mode), probability(transmission, "transmission"), bath)))
+        return self
+
     def phase_noise(self, covariance, mean=None):
         cov = finite_array(covariance, 2)
         mu = np.zeros(self.modes) if mean is None else finite_array(mean, 1)
@@ -263,13 +284,26 @@ class Circuit:
             result = data @ result
         return result
 
-    def run(self, state):
+    def run(self, state, *, precision=None):
+        """Run a FockState, or an occupation such as [1, 1] with automatic cutoff.
+
+        Occupation shorthand uses exactly sum(occupation) initial photons.
+        Mixed states and superpositions use the explicit FockState constructors.
+        """
+        if not isinstance(state, FockState):
+            occupation = tuple(integer(n, "occupation") for n in state)
+            if len(occupation) != self.modes:
+                raise ValueError("One occupation is required per circuit mode")
+            state = FockState.ket(FockBasis(self.modes, sum(occupation), precision=precision), occupation)
+        elif precision is not None:
+            raise ValueError("For FockState inputs, set precision on its FockBasis")
         basis = state.basis
         if basis.modes != self.modes:
             raise ValueError("Input and circuit mode counts differ")
         rho = state.rho.copy()
         history = [float(np.trace(rho).real)]
-        for kind, data in self.steps:
+        truncations = []
+        for step_index, (kind, data) in enumerate(self.steps):
             if kind == "unitary":
                 u = lift_unitary(data, basis)
                 rho = u @ rho @ u.conj().T
@@ -277,15 +311,28 @@ class Circuit:
                 rho = apply_loss(rho, basis, *data)
             elif kind == "phase_noise":
                 rho *= phase_kernel(basis, *data)
+            elif kind == "thermal_loss":
+                from .thermal import apply_thermal_loss
+                mode, eta, bath = data
+                tail = 0. if eta == 1 else bath.omitted_probability
+                truncations.append({"step": step_index, "bath_cutoff": bath.cutoff,
+                                    "bath_tail_probability": tail,
+                                    "omitted_weight": float(np.trace(rho).real)*tail})
+                rho, basis = apply_thermal_loss(rho, basis, mode, eta, bath)
             else:
                 raise ValueError(f"Unknown optical operation: {kind}")
             history.append(float(np.trace(rho).real))
-        return OpticalResult(FockState(basis, rho, subnormalized=True), tuple(history))
+        model = OpticalResult.model
+        if truncations:
+            model += "; thermal beam-splitter baths with explicit unnormalized truncation"
+        return OpticalResult(FockState(basis, rho, subnormalized=True), tuple(history), model, tuple(truncations))
 
     def channel(self, basis):
         """Explicit full Kraus map for SMALL optical instruments; count is budgeted."""
         if basis.modes != self.modes:
             raise ValueError("Basis and circuit differ")
+        input_basis = basis
+        trace_preserving = True
         operators = [np.eye(basis.dimension, dtype=complex)]
         for kind, data in self.steps:
             if kind == "unitary":
@@ -296,14 +343,21 @@ class Circuit:
                 values, vectors = np.linalg.eigh(phase_kernel(basis, *data))
                 basis.precision.guard_kraus(basis.dimension,basis.dimension,int(np.count_nonzero(values>0)))
                 layer = [np.diag(np.sqrt(max(0, x)) * vectors[:, i]) for i, x in enumerate(values) if x > 0]
+            elif kind == "thermal_loss":
+                from .thermal import thermal_loss_operators
+                layer, basis = thermal_loss_operators(basis, *data)
+                if data[1] != 1 and data[2].mean_photons > 0:
+                    trace_preserving = False
             else:
                 raise ValueError(f"Unknown optical operation: {kind}")
             layer = [k for k in layer if np.any(k)]
             if len(layer) * len(operators) > basis.precision.max_kraus:
                 raise ResourceLimitError("Explicit optical Kraus expansion exceeds max_kraus; use Circuit.run")
-            basis.precision.guard_kraus(basis.dimension,basis.dimension,len(layer)*len(operators))
+            basis.precision.guard_kraus(basis.dimension,input_basis.dimension,len(layer)*len(operators))
             operators = [b @ a for b in layer for a in operators]
-        return KrausChannel(operators, precision=basis.precision, name="optical")
+        channel = KrausChannel(operators, trace_preserving=trace_preserving, precision=basis.precision, name="optical")
+        channel.input_basis, channel.output_basis = input_basis, basis
+        return channel
 
 
 class DualRail:
@@ -331,12 +385,17 @@ class DualRail:
 
     def decode(self, state):
         if state.basis != self.basis:
-            raise ValueError("Fock bases differ")
-        return Branch(self.isometry.conj().T @ state.rho @ self.isometry)
+            # Thermal baths enlarge the number cutoff without changing rail
+            # labels. Rebuild only the computational embedding in that basis.
+            v = DualRail(self.n_qubits, basis=state.basis).isometry
+        else:
+            v = self.isometry
+        return Branch(v.conj().T @ state.rho @ v)
 
     def effective_channel(self, circuit):
         """TNI computational branch; loss AND bunching remain in the failure probability."""
         channel = circuit.channel(self.basis)
         v = self.isometry
-        return KrausChannel([v.conj().T @ k @ v for k in channel.operators], trace_preserving=False,
+        output_v = DualRail(self.n_qubits, basis=channel.output_basis).isometry
+        return KrausChannel([output_v.conj().T @ k @ v for k in channel.operators], trace_preserving=False,
                             precision=self.basis.precision, name="dual-rail success")

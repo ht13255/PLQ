@@ -1,5 +1,5 @@
-# Direct package versions from the recorded validation environment.
-# Not a full transitive lockfile; Python 3.12.13.
+# Direct versions from full validation; Python 3.12.13.
+# Not a transitive lockfile; missing optional SDKs are omitted.
 numpy==2.5.2
 scipy==1.18.1
 pytest==9.1.1

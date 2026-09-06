@@ -15,3 +15,7 @@ These sources establish the physical models and interoperability contracts. PLQ 
 11. [PyMatching documentation](https://pymatching.readthedocs.io/en/stable/): minimum-weight perfect matching, graphlike detector errors and optional correlated decoding.
 
 The analytic tests, implementation conventions and finite-model limitations are specified in [PHYSICS.md](PHYSICS.md). No hardware performance, optical loss threshold or universal QEC compatibility claim is inferred merely from citing these references.
+
+12. [Iyer and Poulin, Hardness of decoding quantum stabilizer codes](https://arxiv.org/abs/1310.3235): degenerate decoding chooses a stabilizer equivalence class by summing its error probabilities. PLQ implements bounded exhaustive enumeration for the specified independent Pauli model.
+
+The thermal bath and decoding primary sources were checked again for v0.2 on 2026-09-06.

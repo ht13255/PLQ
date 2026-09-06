@@ -12,8 +12,11 @@ def gaussian_gram(arrival_seconds, angular_frequencies, sigma_seconds):
     sigma is the intensity standard deviation; omega uses rad/s. The common
     carrier frequency can be subtracted to improve numerical conditioning.
     """
-    t = np.asarray(arrival_seconds, dtype=float)
-    w = np.asarray(angular_frequencies, dtype=float)
+    t = finite_array(arrival_seconds)
+    w = finite_array(angular_frequencies)
+    if np.any(t.imag != 0) or np.any(w.imag != 0):
+        raise ValueError("Arrival times and angular frequencies must be real")
+    t, w = t.real, w.real
     if t.ndim != 1 or len(t) == 0 or t.shape != w.shape or not np.all(np.isfinite(t)) or not np.all(np.isfinite(w)):
         raise ValueError("Arrival times and angular frequencies must be finite equally sized vectors")
     if not np.isfinite(sigma_seconds) or sigma_seconds <= 0:

@@ -3,7 +3,7 @@ from dataclasses import dataclass, asdict
 from statistics import NormalDist
 import platform
 import numpy as np
-from .numerics import density, unitary, probability, integer, embed_operator
+from .numerics import density, unitary, probability, integer, embed_operator, finite_array
 from .channels import Branch, KrausChannel
 from .qec import StabilizerCode, MinimumWeightDecoder, ErasureDecoder, DecodeFailure, parse_pauli
 
@@ -31,7 +31,10 @@ class MemoryNoise:
     def arrays(self, n, checks):
         result = []
         for name, size in (("px",n),("py",n),("pz",n),("erasure",n),("syndrome_flip",checks)):
-            value = np.asarray(getattr(self,name), dtype=float)
+            value = finite_array(getattr(self,name))
+            if np.any(value.imag != 0):
+                raise ValueError(f"{name} must be real")
+            value = value.real
             value = np.full(size,float(value)) if value.ndim == 0 else value
             if value.shape != (size,) or not np.all(np.isfinite(value)) or np.any((value<0)|(value>1)):
                 raise ValueError(f"{name} must be a probability or a length-{size} probability vector")
@@ -73,6 +76,8 @@ def simulate_memory(code, noise=None, *, shots=10000, rounds=1, decoder=None, se
         raise TypeError("Pauli-frame trials require StabilizerCode; use LogicalQPU for an arbitrary CodeSpace")
     shots, rounds = integer(shots,"shots",1), integer(rounds,"rounds",1)
     seed = integer(seed,"seed")
+    if not isinstance(final_perfect_round, (bool, np.bool_)):
+        raise ValueError("final_perfect_round must be Boolean")
     noise = noise or MemoryNoise()
     px,py,pz,pe,pm = noise.arrays(code.n, len(code.generators))
     decoder = decoder or (ErasureDecoder(code) if np.any(pe) else MinimumWeightDecoder(code))

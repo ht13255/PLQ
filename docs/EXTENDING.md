@@ -96,3 +96,7 @@ report = simulate_stim(circuit, shots=10000, seed=7)
 ## New backend expectations
 
 Document basis ordering, supported state families and instruments, error assumptions, approximation parameters, and success-probability semantics. Validate the added capability against an analytic result or independent implementation. Agreement on one component does not validate a whole fault-tolerant architecture.
+
+## v0.2 exact reference decoder
+
+`MaximumLikelihoodDecoder(code, noise)` implements the existing decoder protocol and sums stabilizer-coset probabilities. It uses the current perfect syndrome and current flagged replacements; history is accepted but unused. It is not a noisy-history decoder. `exact_pauli_memory` supplies a complete one-round independent-Pauli comparison for custom decoders without Monte Carlo uncertainty. Thermal attenuation returns enlarged Fock bases and may expose rectangular Kraus maps; consumers must use the result/output basis. See [API.md](API.md).

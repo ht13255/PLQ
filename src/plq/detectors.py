@@ -1,9 +1,10 @@
 """Destructive photon counting with explicit efficiency, timing acceptance, and dark counts."""
 from dataclasses import dataclass
-from math import comb, erf, exp, factorial, sqrt
+from math import erf, exp, expm1, log1p, sqrt
 from itertools import product
 import numpy as np
-from scipy.stats import poisson
+from scipy.special import ndtr
+from scipy.stats import binom, poisson
 from .numerics import probability, integer
 from .optics import FockBasis, FockState
 
@@ -40,7 +41,14 @@ class Detector:
         elif sigma == 0:
             acceptance = float(abs(offset) <= half)
         else:
-            acceptance = (erf((half-offset)/(sqrt(2)*sigma)) - erf((-half-offset)/(sqrt(2)*sigma))) / 2
+            lo, hi = (-half-offset)/sigma, (half-offset)/sigma
+            # Use the small tail, not a difference of two CDFs rounded to one.
+            if lo > 0:
+                acceptance = ndtr(-lo) - ndtr(-hi)
+            elif hi < 0:
+                acceptance = ndtr(hi) - ndtr(lo)
+            else:
+                acceptance = (erf(hi/sqrt(2)) - erf(lo/sqrt(2))) / 2
         return self.efficiency * max(0, min(1, acceptance))
 
     @property
@@ -52,14 +60,14 @@ class Detector:
         n = integer(photons, "photons")
         eta, mu = self.effective_efficiency, self.dark_rate_hz * self.gate_seconds
         if self.threshold:
-            p0 = (1-eta)**n * exp(-mu)
-            return np.array([p0, 1-p0])
+            log_p0 = -mu if n == 0 else (-np.inf if eta == 1 else n*log1p(-eta)-mu)
+            return np.array([exp(log_p0), -expm1(log_p0)])
         out = np.zeros(self.saturation + 1)
-        for detected in range(n + 1):
-            p = comb(n, detected) * eta**detected * (1-eta)**(n-detected)
-            if detected >= self.saturation:
-                out[-1] += p
-                continue
+        # Work only below saturation; sum every larger bin analytically. This
+        # avoids enormous integer binomial coefficients and discarded rare tails.
+        out[-1] = binom.sf(self.saturation-1, n, eta)
+        for detected in range(min(n+1, self.saturation)):
+            p = binom.pmf(detected, n, eta)
             for count in range(detected, self.saturation):
                 out[count] += p * poisson.pmf(count-detected, mu)
             out[-1] += p * poisson.sf(self.saturation-detected-1, mu)

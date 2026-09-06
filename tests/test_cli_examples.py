@@ -33,7 +33,8 @@ def test_kraus_budget_prevents_large_expansion():
 
 
 @pytest.mark.parametrize("name,dependency",[("hom",None),("optical_logical",None),("custom_bosonic",None),
-    ("perceval_bridge","perceval"),("pennylane_bridge","pennylane"),("surface_code_stim","pymatching")])
+    ("perceval_bridge","perceval"),("pennylane_bridge","pennylane"),("surface_code_stim","pymatching"),
+    ("thermal_accuracy",None),("exact_memory",None)])
 def test_documented_example_runs(name,dependency):
     if dependency: pytest.importorskip(dependency)
     runpy.run_path(str(ROOT/"examples"/(name+".py")),run_name="__main__")

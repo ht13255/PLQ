@@ -1,0 +1,9 @@
+{
+  "modes": 1,
+  "input": {"occupation": [0]},
+  "steps": [
+    {"operation": "thermal_loss", "mode": 0, "transmission": 0.7,
+     "mean_photons": 0.2, "tail_tolerance": 1e-13}
+  ],
+  "detectors": [{"efficiency": 0.9, "saturation": 4}]
+}

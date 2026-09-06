@@ -1,0 +1,7 @@
+{
+  "method": "exact",
+  "code": {"name": "five_qubit"},
+  "noise": {"px": 0.001, "py": 0.001, "pz": 0.15},
+  "decoder": "maximum_likelihood",
+  "max_patterns": 1000000
+}

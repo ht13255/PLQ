@@ -1,11 +1,10 @@
 {
-  "schema": "plq.validation.v1",
-  "generated_utc": "2026-09-06T00:29:26.946062+00:00",
-  "platform": {
-    "system": "Linux",
-    "machine": "x86_64"
-  },
+  "schema": "plq.validation.v2",
+  "generated_utc": "2026-09-06T12:12:26.745461+00:00",
+  "mode": "full",
   "versions": {
+    "plq-sim": "0.2.0",
+    "python": "3.12.13",
     "numpy": "2.5.2",
     "scipy": "1.18.1",
     "pytest": "9.1.1",
@@ -13,58 +12,109 @@
     "perceval-quandela": "1.2.4",
     "pennylane": "0.45.1",
     "stim": "1.16.0",
-    "pymatching": "2.4.0",
-    "python": "3.12.13"
+    "pymatching": "2.4.0"
   },
   "tests": {
-    "tests": 55,
+    "tests": 81,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "elapsed_seconds": 2.82
+    "passed": 81,
+    "elapsed_seconds": 3.162
+  },
+  "platform": {
+    "system": "Linux",
+    "machine": "x86_64"
   },
   "deterministic_checks": {
     "hom_coincidence": 0.0,
-    "hom_bunching_each": [
-      0.5000000000000002,
-      0.5000000000000002
-    ],
-    "partial_hom_overlap_amplitude": 0.7,
     "partial_hom_coincidence": 0.25500000000000017,
     "partial_hom_expected": 0.255,
     "max_fock_amplitude_error_vs_70_decimal_permanent": 1.2738115944464653e-16,
-    "lifted_unitary_max_residual": 1.2212453270876722e-15,
+    "rare_dark_click_probability": 1e-20,
+    "detector_5000_photons_probability_sum": 1.0,
     "max_probability_error_vs_perceval_slos": 5.551115123125783e-17,
-    "max_density_entry_error_vs_pennylane_default_mixed": 1.3877787807814457e-17,
-    "single_pauli_errors_tested_across_5_7_9_qubit_codes": 63,
-    "two_location_erasure_pauli_cases_in_five_qubit_code": 160
+    "max_density_entry_error_vs_pennylane": 1.3877787807814457e-17
   },
-  "repetition_memory": {
-    "analytic_one_round_error_rate": 0.018176,
-    "measured": {
-      "shots": 30000,
-      "failures": 555,
-      "decoder_failures": 0,
-      "logical_error_rate": 0.0185,
-      "wilson_95": [
-        0.017035679730365197,
-        0.020087615310018403
-      ],
-      "rounds": 1,
-      "seed": 77,
-      "code": "repetition-Z-3",
+  "thermal_convergence": [
+    {
+      "cutoff": 4,
+      "omitted_probability": 0.00012860082304526758,
+      "vacuum_error": 2.039050974433909e-05,
+      "trace_drift": 0.0
+    },
+    {
+      "cutoff": 8,
+      "omitted_probability": 9.92290301275213e-08,
+      "vacuum_error": 3.7775934602635175e-09,
+      "trace_drift": 1.1102230246251565e-16
+    },
+    {
+      "cutoff": 12,
+      "omitted_probability": 7.656560966629717e-11,
+      "vacuum_error": 6.995515278163111e-13,
+      "trace_drift": 3.3306690738754696e-16
+    }
+  ],
+  "exact_decoder_comparison": [
+    {
+      "code": "five-qubit [[5,1,3]]",
+      "decoder": "MinimumWeightDecoder",
+      "patterns": 1024,
+      "success_probability": 0.8318974077561678,
+      "logical_error_rate": 0.168102592243832,
+      "decoder_failure_probability": 0.0,
+      "total_probability": 0.9999999999999998,
       "noise": {
-        "px": 0.08,
-        "py": 0.0,
-        "pz": 0.0,
+        "px": 0.001,
+        "py": 0.001,
+        "pz": 0.15,
         "erasure": 0.0,
         "syndrome_flip": 0.0
       },
-      "model": "phenomenological Pauli memory; ideal mixed-state erasure replacement; final_perfect_round=True; decoder failures count as block failures",
-      "versions": {
-        "numpy": "2.5.2",
-        "python": "3.12.13"
-      }
+      "model": "complete Pauli enumeration; one round; ideal syndrome and recovery; any non-stabilizer residual fails"
+    },
+    {
+      "code": "five-qubit [[5,1,3]]",
+      "decoder": "MaximumLikelihoodDecoder",
+      "patterns": 1024,
+      "success_probability": 0.9635615386182779,
+      "logical_error_rate": 0.03643846138172199,
+      "decoder_failure_probability": 0.0,
+      "total_probability": 0.9999999999999999,
+      "noise": {
+        "px": 0.001,
+        "py": 0.001,
+        "pz": 0.15,
+        "erasure": 0.0,
+        "syndrome_flip": 0.0
+      },
+      "model": "complete Pauli enumeration; one round; ideal syndrome and recovery; any non-stabilizer residual fails"
+    }
+  ],
+  "repetition_memory": {
+    "shots": 30000,
+    "failures": 555,
+    "decoder_failures": 0,
+    "logical_error_rate": 0.0185,
+    "wilson_95": [
+      0.017035679730365197,
+      0.020087615310018403
+    ],
+    "rounds": 1,
+    "seed": 77,
+    "code": "repetition-Z-3",
+    "noise": {
+      "px": 0.08,
+      "py": 0.0,
+      "pz": 0.0,
+      "erasure": 0.0,
+      "syndrome_flip": 0.0
+    },
+    "model": "phenomenological Pauli memory; ideal mixed-state erasure replacement; final_perfect_round=True; decoder failures count as block failures",
+    "versions": {
+      "numpy": "2.5.2",
+      "python": "3.12.13"
     }
   },
   "stim_surface_memory": {
@@ -84,11 +134,5 @@
       "pymatching": "2.4.0"
     },
     "model": "user-supplied Stim circuit and detector error model; any-observable failure per shot"
-  },
-  "limitations": [
-    "Finite mathematical models, not hardware-calibrated accuracy.",
-    "Main engine complex128; 70-decimal arithmetic is only an independent permanent reference.",
-    "Sampled logical errors depend on the supplied noise model and decoder.",
-    "CI configuration is included; this report records local execution only."
-  ]
+  }
 }

@@ -1,5 +1,5 @@
 """PLQ: transparent photonic logical-qubit simulation."""
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .numerics import Precision, ResourceLimitError, diagnostics
 from .channels import Branch, KrausChannel, PAULI, pauli_channel, erasure_channel
@@ -11,3 +11,4 @@ from .qec import (CodeSpace, StabilizerCode, Decoder, DecodeFailure, MinimumWeig
 from .simulation import LogicalQPU, MemoryNoise, MemoryResult, simulate_memory, effective_logical_channel, wilson_interval
 from .recovery import knill_laflamme, transpose_recovery
 from .fusion import bell_analyzer_circuit, bell_measurement, bell_instruments
+from .decoding import MaximumLikelihoodDecoder, ExactMemoryResult, exact_pauli_memory

@@ -123,3 +123,31 @@ Observed syndrome bits pass through independent binary symmetric readout channel
 The Stim bridge instead follows the user's actual measurement schedule, detector error model and logical observables. PyMatching needs a supported graphlike model; failed decompositions raise. These two engines simulate different experiments unless the user deliberately makes their models agree. Neither automatically translates a photonic resource network into circuit faults.
 
 Independent-shot results include Wilson 95% binomial intervals. Seeds and versions are recorded, but exact RNG sequences across library versions/architectures are not guaranteed. Zero sampled failures is not proof of zero physical failure probability. Statistical intervals do not quantify calibration uncertainty, model mismatch or finite-model truncation.
+
+
+## Thermal attenuation and controlled truncation
+
+`Circuit.thermal_loss` couples a selected mode to an independent thermal oscillator by the same beam-splitter convention as passive optics. For bath mean occupation $\bar n$, define $q=\bar n/(1+\bar n)$ and retain
+
+$$\tau_K=\sum_{k=0}^K (1-q)q^k|k\rangle\langle k|,\qquad
+\epsilon_K=q^{K+1}.$$
+
+PLQ evaluates $\operatorname{Tr}_E[U_\eta(\rho\otimes\tau_K)U_\eta^\dagger]$ without renormalizing $\tau_K$. The system cutoff grows from $N$ to $N+K$, so none of the retained bath's possible output photons are projected away. Later loss or interference acts on those enlarged sectors. The thermal-environment dilation is a bosonic Gaussian attenuator model; see [Ivan, Sabapathy and Simon](https://arxiv.org/abs/1012.4266), especially the noisy-channel discussion.
+
+Implementation: exponentiate the real antisymmetric beam-splitter generator in each conserved total-number sector; then sum sparse Kraus index updates over both incoming and outgoing bath occupations. Regression tests use a separate creation-operator Fock lift on the full system-plus-environment density matrix and trace out the environment. Vacuum-bath, identity and full-replacement limits are checked.
+
+For incoming trace $p$, one interacting step retains trace $p(1-\epsilon_K)$ and omits absolute weight $p\epsilon_K$. The omitted operator is positive. Consequently the trace norm of the missing output is that omitted weight, and it bounds the absolute error of any subsequent probability computed by a fixed trace-nonincreasing instrument, apart from floating-point errors. Multiple independent baths accumulate the reported omitted weights. An explicitly truncated input source contributes its own omitted weight too. These bounds do not apply directly to normalized conditional fidelities or unbounded observables such as photon number.
+
+For a vacuum input, the infinite-bath output has a thermal photon distribution with mean $(1-\eta)\bar n$. The validation example checks this distribution and the finite-bath mean analytically. `tail_tolerance` concerns the bath probability tail, not experimental accuracy. `numerical_trace_error` diagnoses the separate floating-point trace drift. The main engine is still complex128.
+
+The mean occupation must be specified for the actual bath mode; no wavelength, temperature, bandwidth or spectral population is inferred. Thermal bath photons and detector dark counts are distinct mechanisms. Thermal steps on `WavepacketState` are rejected because assigning equal populations to its factorization-dependent internal modes would invent a physical spectral bath model.
+
+## Exact Pauli enumeration and degenerate maximum likelihood
+
+For independent per-site Pauli probabilities, `MaximumLikelihoodDecoder` selects, for each perfect current syndrome, the stabilizer coset with the greatest **sum** of probabilities. Members of a coset have the same action on encoded states. This distinction from choosing a most-probable individual word follows [Iyer and Poulin, Hardness of decoding quantum stabilizer codes](https://arxiv.org/abs/1310.3235).
+
+The implementation reduces binary Pauli masks modulo the full stabilizer span, including all pivots, and accumulates coset masses in log space. It supports multiple logical qubits and nonuniform X/Y/Z rates. Ties use deterministic enumeration order. Current flagged replacements are uniform I/X/Y/Z; cache size and word enumeration are explicitly bounded.
+
+`exact_pauli_memory` enumerates the complete nonzero-support distribution, applies one ideal syndrome/recovery round, and adds probabilities of every residual outside the stabilizer. The calculation has no Monte Carlo error. Tiny logical failure probabilities are accumulated directly instead of subtracting a nearly unit success probability. Float64 underflow/roundoff and imperfect physical calibration still limit accuracy. Explicit stabilizer-group sums, analytic repetition-code rates and flagged replacement cases provide independent tests.
+
+Optimality is restricted to this independent Pauli, ideal-current-syndrome model. The decoder is not a full-history decoder and does not infer coherent optical noise, correlated faults or physical syndrome circuits. `simulate_memory` retains its previous default decoder; the exact-rate API rejects erasure and readout noise rather than silently dropping them. Its illustrative noise parameters are not hardware calibration data.
