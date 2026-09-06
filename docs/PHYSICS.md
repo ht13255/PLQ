@@ -1,0 +1,125 @@
+# Physical model and accuracy contract
+
+“Exact” means the specified finite mathematical model, up to floating-point arithmetic. It does not mean exact agreement with a physical device.
+
+## Basis and conventions
+
+For `m` modes and total photon cutoff `N`, PLQ includes every occupation
+
+$$|n_0,\ldots,n_{m-1}\rangle,\quad n_i\ge0,\quad\sum_i n_i\le N.$$
+
+The dimension is $D=\binom{m+N}{N}$. States are ordered by ascending total photon number and recursive weak compositions, exposed as `basis.states` and `basis.index`. Use these indices when importing a matrix. This is not a rectangular per-mode tensor ordering.
+
+The basis is invariant under passive optics and downward closed under loss. A per-mode cutoff of one would incorrectly discard bunching. Initial source configurations outside the total cutoff are omitted with an explicit `omitted_probability`; the retained state stays subnormalized. A boundary population is not itself a truncation error for passive optics. Externally supplied active/CV states require a separate cutoff convergence study.
+
+Qubit ordering is big-endian: qubit 0 is the most significant tensor factor. Dual-rail qubit `q` uses modes `(2*q, 2*q+1)` with $|0\rangle=|1,0\rangle$ and $|1\rangle=|0,1\rangle$.
+
+## Passive optics
+
+The single-particle convention is
+
+$$a_j^\dagger\longrightarrow\sum_i U_{ij}a_i^\dagger.$$
+
+For power transmission $T$ and phase $\phi$, `bs` uses
+
+$$U_{\rm BS}=\begin{pmatrix}\sqrt T&-e^{-i\phi}\sqrt{1-T}\\e^{i\phi}\sqrt{1-T}&\sqrt T\end{pmatrix}.$$
+
+Appending $U_1$ then $U_2$ produces $U_2U_1$. The Fock lift uses normalized creation-operator recurrence with all $\sqrt{n+1}$ factors and input factorials. Its independent permanent expression is
+
+$$\langle\mathbf t|\hat U|\mathbf s\rangle=\frac{\operatorname{perm}(U[\mathbf t,\mathbf s])}{\sqrt{\prod_i t_i!\prod_j s_j!}}.$$
+
+Repeated rows/columns correspond to output/input occupations. Vacuum has amplitude one. `reference.fock_amplitude` evaluates this separately with mpmath and a bounded factorial permanent sum.
+
+For two identical photons at a balanced beam splitter, $P(1,1)=0$ and $P(2,0)=P(0,2)=1/2$. With pure-wavepacket amplitude overlap $\mu$, $P(1,1)=(1-|\mu|^2)/2$. Ideal HOM visibility is $|\mu|^2$, not $\mu$.
+
+## Loss and Gaussian phase noise
+
+Each optical loss step couples a mode to an independent **vacuum environment**. Its Kraus action is
+
+$$L_\ell|n\rangle=\sqrt{\binom n\ell}(1-\eta)^{\ell/2}\eta^{(n-\ell)/2}|n-\ell\rangle.$$
+
+Here $\ell\le n$ and $\eta$ is intensity transmission. Including lower photon-number sectors makes the channel trace preserving. For $n$ photons, survivors follow a binomial distribution. Off-diagonal coherences are evolved by the same channel. See the quantum-limited attenuator operator-sum description in [Ivan, Sabapathy and Simon](https://arxiv.org/abs/1012.4266).
+
+For a dual-rail qubit with unequal rail transmissions, the no-loss logical Kraus operator is $\operatorname{diag}(\sqrt{\eta_0},\sqrt{\eta_1})$. Its success probability and normalized output depend on the input. Only equal rail loss becomes state-independent erasure. PLQ does not infer transmission from wavelength, temperature or distance.
+
+`phase_noise(C, mean)` analytically averages Gaussian phases with mean $\mu$ and real positive-semidefinite covariance $C$:
+
+$$\rho_{\mathbf n,\mathbf m}\mapsto\rho_{\mathbf n,\mathbf m}\exp\left[i(\mathbf n-\mathbf m)^T\mu-\frac12(\mathbf n-\mathbf m)^TC(\mathbf n-\mathbf m)\right].$$
+
+Mean uses radians; covariance uses radians squared. Common-mode fluctuations cancel within a fixed total-number sector. Separate calls are independent layers. Cross-time correlations, non-Gaussian drift and bath spectral structure are not implied by this API.
+
+## Partial distinguishability
+
+`wavepacket_input` describes a product of pure normalized internal photon states with $G_{ij}=\langle\phi_i|\phi_j\rangle$. The full complex Gram matrix must be Hermitian, positive semidefinite and unit-diagonal. A factorization $C^\dagger C=G$ creates photons in explicit orthogonal internal modes. Optical evolution becomes $U\otimes I$; loss has distinct environment modes; spatial phase noise is shared by the internal modes at that port. Internal occupations are summed only for final spatial counting. This follows the explicit internal-mode construction described by [Osca and Vala](https://arxiv.org/abs/2208.03250).
+
+Eigenvalues at or below `Precision.atol` are removed during factorization; the reconstruction error is reported as `gram_factorization_residual`. Repeated input ports require normalization of the symmetrized creation-operator product. Arbitrary mixed or correlated spectral states are outside this constructor's model. Spatial count probabilities cannot be reinterpreted as a coherent spatial state vector.
+
+`gaussian_gram` assumes equal-width temporal wavefunctions
+
+$$\psi_j(t)\propto\exp[-(t-t_j)^2/(4\sigma^2)]e^{-i\omega_jt}.$$
+
+Thus $\sigma$ is the **intensity** standard deviation in seconds and $\omega$ uses radians/second. With $\Delta t=t_i-t_j$ and $\Delta\omega=\omega_i-\omega_j$,
+
+$$G_{ij}=\exp[-\Delta t^2/(8\sigma^2)-\sigma^2\Delta\omega^2/2+i\Delta\omega(t_i+t_j)/2].$$
+
+Subtract a common carrier to improve conditioning. Frequency-dependent optics and spectrally/time-resolved detection require an additional model.
+
+## Detectors and destructive heralding
+
+Each incident photon is independently registered with effective efficiency $\eta_d$. Optional Gaussian arrival-window acceptance multiplies detector efficiency. `timing_sigma_seconds` describes independent arrival acceptance; it does not automatically model spectral decoherence.
+
+Dark counts are Poisson with mean $\lambda=r_{\rm dark}\Delta t$. Before saturation,
+
+$$P(k|n)=\sum_{j=0}^{\min(n,k)}\binom nj\eta_d^j(1-\eta_d)^{n-j}e^{-\lambda}\frac{\lambda^{k-j}}{(k-j)!}.$$
+
+The final PNR bin includes **every count greater than or equal to `saturation`**, evaluated with the Poisson survival function. Threshold detection gives $P(0|n)=(1-\eta_d)^ne^{-\lambda}$ and $P(1|n)=1-P(0|n)$. No tail is discarded.
+
+`herald` is destructive photon counting, not a square-root nondestructive instrument:
+
+$$\widetilde\rho_R=\sum_{\mathbf n}P(\mathbf k|\mathbf n)\langle\mathbf n|\rho|\mathbf n\rangle_M.$$
+
+Measured number sectors are traced; inter-sector coherences do not survive. The remaining trace is the absolute branch probability, including any incoming retained weight. `conditional_state()` explicitly divides by this weight. Zero-probability conditioning raises. For nested unnormalized branches, do not multiply the incoming probability a second time.
+
+Dead time, afterpulsing, inter-gate correlations and photon-number-dependent efficiency are not built in. Using the same measured inefficiency as both a propagation loss and detector loss double-counts it.
+
+## Bell measurement and resource-state fusion
+
+The unboosted dual-rail analyzer mixes mode pairs `(0,2)` and `(1,3)`. Distinct two-click patterns identify $\Psi^+$ and $\Psi^-$. The $\Phi$ pair is unresolved, so four equally likely Bell inputs give ideal success probability $1/2$.
+
+`bell_instruments` exposes a complete three-outcome destructive CP instrument. Noisy conclusive patterns can be false heralds; success does not imply perfect fidelity. For larger resource states, apply the beam splitters and `herald` to selected modes, then explicitly choose the next circuit from the classical outcome. Boosted ancillas, graph construction, full fusion schedules and decoders must be specified. The architecture-level distinction follows [Bartolucci et al.](https://arxiv.org/abs/2101.09310).
+
+## Codes and ideal recovery
+
+A code is an isometry $V$, with $V^\dagger V=I$. Encoding is $V\rho V^\dagger$; decoding returns the possibly subnormalized matrix $V^\dagger\rho V$. Independent commuting signed stabilizers define
+
+$$P_s=\prod_j\frac{I+(-1)^{s_j}g_j}{2},\qquad\mathcal R(\rho)=\sum_s C_sP_s\rho P_sC_s^\dagger.$$
+
+PLQ rejects dependent or noncommuting generators. Supplied logical X/Z operators must have canonical commutation relations. Without those operators, a numerical orthonormal basis labels the code space; do not assume it matches an external encoder.
+
+Dense recovery assumes ideal projective syndrome extraction and ideal feed-forward. `logical_gate(U)` applies $VUV^\dagger+I-VV^\dagger$, a mathematical encoded unitary without an optical gate decomposition or assigned hardware duration/error.
+
+`knill_laflamme` checks the absolute residual of $V^\dagger E_i^\dagger E_jV=\alpha_{ij}I$ for the specified error set, following [Knill and Laflamme](https://arxiv.org/abs/quant-ph/9604034). Residuals scale with operator normalization and do not cover unspecified errors.
+
+For a physical channel $\mathcal N$, `transpose_recovery` uses $R_i=PE_i^\dagger[\mathcal N(P)]^{-1/2}$ with $P=VV^\dagger$. Its pseudoinverse cutoff is reported, and excluded input support is reset to the first codeword to complete the map to CPTP. This is approximate recovery in general, as studied by [Ng and Mandayam](https://arxiv.org/abs/0909.0931), not a claim of optimal hardware decoding.
+
+## Effective logical channels and flags
+
+For physical Kraus operators $K_a$, computational operators $A_a=V_{out}^\dagger K_aV_{in}$ usually define a trace-decreasing map. Renormalizing its output for every input creates a nonlinear transformation, not a quantum channel.
+
+`flagged()` retains the success block and maps the missing effect $M=I-\sum_aA_a^\dagger A_a$ into one orthogonal failure state. Its Kraus rows use the spectral decomposition of $M$, producing a CPTP completion. Failure is coarse-grained; detailed environment labels are not retained. Input failure/padding states stay invariant.
+
+For a normalized pure target and unnormalized output, report
+
+$$p=\operatorname{Tr}\widetilde\rho,\qquad F_{conditional}=\langle\psi|\widetilde\rho|\psi\rangle/p,\qquad F_{weighted}=\langle\psi|\widetilde\rho|\psi\rangle.$$
+
+Conditional fidelity alone can conceal a tiny success probability.
+
+## Memory trials and statistics
+
+`simulate_memory` samples exclusive I/X/Y/Z errors per qubit and round, then optional flagged replacements. Each erased qubit is ideally replenished as maximally mixed, equivalent to a uniform I/X/Y/Z twirl. Only its location is given to the decoder; its hidden Pauli is not. This differs from retaining a physically absent photon in Fock space.
+
+Observed syndrome bits pass through independent binary symmetric readout channels. Reference lookup decoding minimizes Pauli weight, not a channel-biased or degeneracy-aware likelihood. Erasure decoding assigns zero cost at erased locations and unit cost elsewhere. History is passed to custom decoders; built-ins use the current syndrome only. The optional final perfect round is explicit. Any residual Pauli outside the stabilizer group is a block failure, counting any logical action independent of the chosen input state. Decoder failures are also included conservatively.
+
+The Stim bridge instead follows the user's actual measurement schedule, detector error model and logical observables. PyMatching needs a supported graphlike model; failed decompositions raise. These two engines simulate different experiments unless the user deliberately makes their models agree. Neither automatically translates a photonic resource network into circuit faults.
+
+Independent-shot results include Wilson 95% binomial intervals. Seeds and versions are recorded, but exact RNG sequences across library versions/architectures are not guaranteed. Zero sampled failures is not proof of zero physical failure probability. Statistical intervals do not quantify calibration uncertainty, model mismatch or finite-model truncation.

@@ -1,0 +1,17 @@
+{
+  "modes": 2,
+  "max_photons": 2,
+  "precision": {"atol": 1e-10, "max_dimension": 1024},
+  "input": {"occupation": [1, 1]},
+  "steps": [
+    {"operation": "bs", "first": 0, "second": 1, "transmission": 0.5},
+    {"operation": "loss", "mode": 0, "transmission": 0.9},
+    {"operation": "loss", "mode": 1, "transmission": 0.9},
+    {"operation": "phase_noise", "covariance": [[0.01, 0.003], [0.003, 0.02]]}
+  ],
+  "detectors": [
+    {"efficiency": 0.9, "dark_rate_hz": 100.0, "gate_seconds": 1e-9, "saturation": 3},
+    {"efficiency": 0.9, "dark_rate_hz": 100.0, "gate_seconds": 1e-9, "saturation": 3}
+  ],
+  "herald": {"modes": [0], "counts": [1], "detectors": [{"efficiency": 0.9, "saturation": 3}]}
+}

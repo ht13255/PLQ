@@ -1,0 +1,10 @@
+# Direct package versions from the recorded validation environment.
+# Not a full transitive lockfile; Python 3.12.13.
+numpy==2.5.2
+scipy==1.18.1
+pytest==9.1.1
+mpmath==1.3.0
+perceval-quandela==1.2.4
+pennylane==0.45.1
+stim==1.16.0
+pymatching==2.4.0

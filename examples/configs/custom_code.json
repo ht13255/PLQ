@@ -1,0 +1,7 @@
+{
+  "format": "plq.stabilizer.v1",
+  "name": "User-defined three-qubit bit-flip code",
+  "generators": ["ZZI", "IZZ"],
+  "logical_x": ["XXX"],
+  "logical_z": ["ZII"]
+}

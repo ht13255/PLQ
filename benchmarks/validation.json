@@ -1,0 +1,94 @@
+{
+  "schema": "plq.validation.v1",
+  "generated_utc": "2026-09-06T00:29:26.946062+00:00",
+  "platform": {
+    "system": "Linux",
+    "machine": "x86_64"
+  },
+  "versions": {
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "pytest": "9.1.1",
+    "mpmath": "1.3.0",
+    "perceval-quandela": "1.2.4",
+    "pennylane": "0.45.1",
+    "stim": "1.16.0",
+    "pymatching": "2.4.0",
+    "python": "3.12.13"
+  },
+  "tests": {
+    "tests": 55,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 2.82
+  },
+  "deterministic_checks": {
+    "hom_coincidence": 0.0,
+    "hom_bunching_each": [
+      0.5000000000000002,
+      0.5000000000000002
+    ],
+    "partial_hom_overlap_amplitude": 0.7,
+    "partial_hom_coincidence": 0.25500000000000017,
+    "partial_hom_expected": 0.255,
+    "max_fock_amplitude_error_vs_70_decimal_permanent": 1.2738115944464653e-16,
+    "lifted_unitary_max_residual": 1.2212453270876722e-15,
+    "max_probability_error_vs_perceval_slos": 5.551115123125783e-17,
+    "max_density_entry_error_vs_pennylane_default_mixed": 1.3877787807814457e-17,
+    "single_pauli_errors_tested_across_5_7_9_qubit_codes": 63,
+    "two_location_erasure_pauli_cases_in_five_qubit_code": 160
+  },
+  "repetition_memory": {
+    "analytic_one_round_error_rate": 0.018176,
+    "measured": {
+      "shots": 30000,
+      "failures": 555,
+      "decoder_failures": 0,
+      "logical_error_rate": 0.0185,
+      "wilson_95": [
+        0.017035679730365197,
+        0.020087615310018403
+      ],
+      "rounds": 1,
+      "seed": 77,
+      "code": "repetition-Z-3",
+      "noise": {
+        "px": 0.08,
+        "py": 0.0,
+        "pz": 0.0,
+        "erasure": 0.0,
+        "syndrome_flip": 0.0
+      },
+      "model": "phenomenological Pauli memory; ideal mixed-state erasure replacement; final_perfect_round=True; decoder failures count as block failures",
+      "versions": {
+        "numpy": "2.5.2",
+        "python": "3.12.13"
+      }
+    }
+  },
+  "stim_surface_memory": {
+    "shots": 2000,
+    "failures": 42,
+    "logical_error_rate": 0.021,
+    "wilson_95": [
+      0.015573520825817387,
+      0.028263010469622922
+    ],
+    "detectors": 24,
+    "observables": 1,
+    "seed": 123,
+    "versions": {
+      "stim": "1.16.0",
+      "numpy": "2.5.2",
+      "pymatching": "2.4.0"
+    },
+    "model": "user-supplied Stim circuit and detector error model; any-observable failure per shot"
+  },
+  "limitations": [
+    "Finite mathematical models, not hardware-calibrated accuracy.",
+    "Main engine complex128; 70-decimal arithmetic is only an independent permanent reference.",
+    "Sampled logical errors depend on the supplied noise model and decoder.",
+    "CI configuration is included; this report records local execution only."
+  ]
+}
