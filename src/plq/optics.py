@@ -357,6 +357,16 @@ class Circuit:
         return OpticalResult(FockState(basis, rho, subnormalized=True), tuple(history), model,
                              tuple(truncations), tuple(self.transfer_residuals))
 
+    def run_sparse(self, state, *, budget=None):
+        """Pure lossless Fock amplitudes without a lifted dense matrix."""
+        from .scalable import run_sparse
+        return run_sparse(self, state, budget=budget)
+
+    def sample(self, state, *, shots=1000, seed=0, budget=None, detectors=None):
+        """Explicit Monte Carlo loss/phase trajectories; see scalable.py."""
+        from .scalable import sample_trajectories
+        return sample_trajectories(self, state, shots=shots, seed=seed, budget=budget, detectors=detectors)
+
     def channel(self, basis):
         """Explicit full Kraus map for SMALL optical instruments; count is budgeted."""
         if basis.modes != self.modes:

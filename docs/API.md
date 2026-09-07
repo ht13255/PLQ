@@ -181,3 +181,17 @@ Python: `MaximumLikelihoodDecoder(code, noise=None, max_patterns=1000000, max_ca
 `ExactMemoryResult` reports enumerated nonzero-support patterns, success probability, logical block error rate, decoder-failure probability, total probability, noise and model. Failure includes every residual outside the stabilizer, irrespective of the encoded input. Failures are summed directly, retaining rare values that would disappear in `1 - success`. No Wilson interval or RNG seed is attached because there is no sampling.
 
 `max_patterns` bounds supported words before enumeration; a full Pauli channel needs `4**n`. Erasure flag tables use bounded LRU caching. `max_dimension` does not constrain this Pauli-frame calculation because it never allocates a dense code state.
+
+
+## v0.4 additions
+
+See [SCALABILITY.md](SCALABILITY.md) for `SparseKet`, `SparseBudget`,
+`Circuit.run_sparse`, `Circuit.sample` and explicit `optics` JSON backends
+(`density`, `sparse`, `trajectories`). Unsupported combinations raise.
+
+See [HARDWARE_BRIDGE.md](HARDWARE_BRIDGE.md) for `FeedForward`,
+`teleportation_instrument`, its event-resolved CPTP flag channel and diagnostic
+computational projection. CLI: `plq teleportation config.json [--output file]`.
+
+See [REPRODUCTION.md](REPRODUCTION.md) for `source-hom` provenance/evidence and
+`compare_experiment`. CLI: `plq compare-experiment manifest.json [--output file]`.

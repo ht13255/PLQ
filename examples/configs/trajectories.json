@@ -1,0 +1,9 @@
+{
+  "modes": 2,
+  "backend": "trajectories",
+  "input": {"occupation": [1, 1]},
+  "steps": [{"operation": "bs", "first": 0, "second": 1}, {"operation": "loss", "mode": 0, "transmission": 0.85}, {"operation": "loss", "mode": 1, "transmission": 0.85}],
+  "detectors": [{"threshold": true, "efficiency": 0.9}, {"threshold": true, "efficiency": 0.9}],
+  "shots": 2000,
+  "seed": 7
+}

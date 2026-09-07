@@ -1,0 +1,20 @@
+{
+  "dataset": "synthetic_counts.json",
+  "dataset_sha256": "eee0b5509179eb99fc2be74581cba3aac5425d4cb6a227da1e144973b63fe8a5",
+  "scenario": "synthetic_scenario.json",
+  "observable": "detector_counts",
+  "protocol": {
+    "trial_definition": "One independent pulse, including no click",
+    "selection": "all_trials",
+    "independent_trials": true,
+    "same_observable": true,
+    "fixed_parameters": true
+  },
+  "calibration": {
+    "transmission": "Illustrative fixed 0.7, no hardware calibration",
+    "detector": "Ideal threshold detector assumption"
+  },
+  "sources": [
+    "PLQ synthetic fixture; these counts were selected for software validation and are not experimental measurements."
+  ]
+}

@@ -12,6 +12,7 @@ import scipy
 from plq import (__version__, Circuit, Detector, mixed_wavepacket_input, wavepacket_input,
                  detection_probabilities)
 from plq.cli import source_hom_scenario
+from plq.reproduction import evidence_record
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -137,7 +138,7 @@ def build_report():
         dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())
     except (OSError, subprocess.CalledProcessError):
         head, dirty = None, None
-    return {"schema": "plq.paper-benchmarks.v1", "generated_utc": datetime.now(timezone.utc).isoformat(),
+    return {"evidence": evidence_record("paper_parameter_reproduction"), "schema": "plq.paper-benchmarks.v1", "generated_utc": datetime.now(timezone.utc).isoformat(),
             "versions": {"plq": __version__, "python": platform.python_version(),
                          "numpy": np.__version__, "scipy": scipy.__version__},
             "source_provenance": {"checkout_head": head, "working_tree_dirty": dirty, "sha256": hashes},
@@ -150,6 +151,7 @@ def build_report():
 def render(report):
     lines = ["# Paper-parameter benchmarks", "", f"Recorded: {report['generated_utc']}", "",
              f"PLQ {report['versions']['plq']}. All numbers below were computed by `scripts/paper_benchmarks.py`.", "",
+             "Evidence category: `paper_parameter_reproduction`; `experimental_reproduction=false`. See [the comparison contract](REPRODUCTION.md).", "",
              "Three papers supply numerical scenarios; a fourth motivates explicit noise hypotheses. "
              "Published measurements, derived inputs and scenario assumptions are recorded separately in "
              "[paper_parameters.json](../benchmarks/paper_parameters.json). Full machine results, configurations, "

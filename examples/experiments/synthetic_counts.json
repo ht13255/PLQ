@@ -1,0 +1,6 @@
+{
+  "origin": "synthetic",
+  "shots": 1000,
+  "bins": [{"outcome": [1], "count": 698}],
+  "other_count": 302
+}

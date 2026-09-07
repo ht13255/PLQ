@@ -1,5 +1,5 @@
 """PLQ: transparent photonic logical-qubit simulation."""
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 from .numerics import Precision, ResourceLimitError, diagnostics
 from .channels import Branch, KrausChannel, PAULI, pauli_channel, erasure_channel
@@ -15,3 +15,7 @@ from .simulation import LogicalQPU, MemoryNoise, MemoryResult, simulate_memory, 
 from .recovery import knill_laflamme, transpose_recovery
 from .fusion import bell_analyzer_circuit, bell_measurement, bell_instruments
 from .decoding import MaximumLikelihoodDecoder, ExactMemoryResult, exact_pauli_memory
+
+from .scalable import SparseBudget, SparseKet, TrajectoryResult, run_sparse, sample_trajectories
+from .hardware import FeedForward, TeleportationInstrument, teleportation_instrument
+from .reproduction import evidence_record, compare_experiment

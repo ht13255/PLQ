@@ -1,14 +1,40 @@
 {
   "sources": [
-    {"mean_photons": 0.6336, "g2_zero": 0.009},
-    {"mean_photons": 0.6336, "g2_zero": 0.009}
+    {
+      "mean_photons": 0.6336,
+      "g2_zero": 0.009
+    },
+    {
+      "mean_photons": 0.6336,
+      "g2_zero": 0.009
+    }
   ],
   "indistinguishability": 0.985,
   "multiphoton_model": "same_wavepacket",
   "beamsplitter_transmission": 0.5,
-  "transmissions": [0.216, 0.216],
+  "transmissions": [
+    0.216,
+    0.216
+  ],
   "detectors": [
-    {"threshold": true, "efficiency": 0.33},
-    {"threshold": true, "efficiency": 0.33}
-  ]
+    {
+      "threshold": true,
+      "efficiency": 0.33
+    },
+    {
+      "threshold": true,
+      "efficiency": 0.33
+    }
+  ],
+  "provenance": {
+    "sources": [
+      "https://arxiv.org/abs/1601.00284"
+    ],
+    "assumptions": [
+      "Rate-budget factors: main text p. 2; rounded independent calibrations, before the added 3 GHz etalon.",
+      "HOM scenario mean is preparation*extraction; output loss is polarization*path*fiber. These are derived values.",
+      "Purity and HOM measurements use the added etalon; its throughput and full pulse interferometer are unavailable here. Combining them with the rate budget is a sensitivity scenario, not a calibrated hardware prediction.",
+      "No fit to the reported count rate or raw visibility is performed."
+    ]
+  }
 }
