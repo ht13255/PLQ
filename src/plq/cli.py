@@ -15,7 +15,7 @@ from .qec import get_code, StabilizerCode, MinimumWeightDecoder, ErasureDecoder
 from .simulation import MemoryNoise, simulate_memory
 from .decoding import MaximumLikelihoodDecoder, exact_pauli_memory
 from .experiments import source_hom
-from .sources import number_distribution_from_moments
+from .sources import number_distribution, number_distribution_from_moments
 
 
 def _unknown(data, allowed):
@@ -55,12 +55,18 @@ def optical_scenario(config):
     precision=Precision(**config.get("precision",{}))
     source=config["input"]
     _unknown(source,{"occupation","sources","amplitudes"})
+    if set(source)=={"sources"}:
+        if len(source["sources"]) != integer(config["modes"],"modes",1):
+            raise ValueError("One number distribution is required per mode")
+        # Validate the complete distributions before allocating a Fock basis.
+        # Keep every positive probability, however small; atol is not a cutoff.
+        distributions=[number_distribution(dist,atol=precision.atol) for dist in source["sources"]]
     cutoff=config.get("max_photons")
     if cutoff is None:
         if set(source)=={"occupation"}:
             cutoff=sum(integer(n,"occupation") for n in source["occupation"])
         elif set(source)=={"sources"}:
-            cutoff=sum(max(0,len(dist)-1) for dist in source["sources"])
+            cutoff=sum(int(np.flatnonzero(dist > 0)[-1]) for dist in distributions)
         elif set(source)=={"amplitudes"}:
             cutoff=max((sum(integer(n,"occupation") for n in item["occupation"])
                         for item in source["amplitudes"]),default=0)
@@ -71,7 +77,7 @@ def optical_scenario(config):
     if set(source)=={"occupation"}:
         state=FockState.ket(basis,source["occupation"])
     elif set(source)=={"sources"}:
-        result=independent_sources(basis,source["sources"])
+        result=independent_sources(basis,distributions)
         state,omitted=result.state,result.omitted_probability
     elif set(source)=={"amplitudes"}:
         amplitudes={}
@@ -209,7 +215,7 @@ def memory_scenario(config, *, base_directory=None):
         payload=exact_pauli_memory(code,noise,decoder=decoder,max_patterns=budget).to_dict()
     else:
         options={key:config[key] for key in ("shots","rounds","seed","final_perfect_round") if key in config}
-        payload=simulate_memory(code,noise,decoder=decoder,**options).to_dict()
+        payload=simulate_memory(code,noise,decoder=decoder,max_patterns=budget,**options).to_dict()
     return {**payload,"method":method,"config":config,"plq_version":__version__}
 
 

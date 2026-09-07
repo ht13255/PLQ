@@ -75,7 +75,9 @@ print(result.state.diagnostics())
 | Custom finite bosonic encoding and recovery | `python examples/custom_bosonic.py` |
 | Large Clifford syndrome-extraction circuits | `python examples/surface_code_stim.py` (optional SDKs) |
 
-Add `--output results/run.json` to `optics` or `memory` to save the configuration, model, versions and results. Optical JSON now infers the initial cutoff when omitted. A custom code file in a memory JSON is resolved relative to that JSON file.
+Add `--output results/run.json` to `optics` or `memory` to save the configuration, model, versions and results. Optical JSON infers the initial cutoff when omitted. For source distributions, only positive-probability support determines that cutoff: `[1]` and `[1, 0, 0]` both mean vacuum. Tiny positive tails are retained. A custom code file in a memory JSON is resolved relative to that JSON file.
+
+Memory JSON accepts `"max_patterns": 1000000` (the default) to bound decoder work, including when `decoder` is omitted. A smaller budget raises `ResourceLimitError` if exceeded; it does not silently fall back to a larger budget. Python callers can use `simulate_memory(..., max_patterns=...)` too. See [resource semantics](docs/API.md#error-and-cost-controls) and the [2026-09-07 review fixes](docs/REVIEW_FIXES_2026-09-07.md).
 
 ## Use measured source parameters
 

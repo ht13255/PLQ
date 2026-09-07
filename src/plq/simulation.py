@@ -62,7 +62,8 @@ class MemoryResult:
         return asdict(self)
 
 
-def simulate_memory(code, noise=None, *, shots=10000, rounds=1, decoder=None, seed=0, final_perfect_round=True):
+def simulate_memory(code, noise=None, *, shots=10000, rounds=1, decoder=None, seed=0,
+                    final_perfect_round=True, max_patterns=1000000):
     """Pauli-frame trials with ideal stabilizer measurements plus classical readout flips.
 
     Each erased qubit is ideally replenished as maximally mixed: a uniform I/X/Y/Z
@@ -70,17 +71,23 @@ def simulate_memory(code, noise=None, *, shots=10000, rounds=1, decoder=None, se
     fusion construction and propagation are NOT modeled by this convenience engine.
     Custom decoders receive the entire past (observed syndrome, erased locations)
     history for the current shot. Default decoders only use the current syndrome.
+    max_patterns bounds default decoder construction and each erasure-table
+    enumeration, not cumulative work over shots. Supplied decoders retain their
+    own resource policy and are never replaced or reconfigured.
     Any non-stabilizer residual is a block error (state-independent convention).
     """
     if not isinstance(code, StabilizerCode):
         raise TypeError("Pauli-frame trials require StabilizerCode; use LogicalQPU for an arbitrary CodeSpace")
     shots, rounds = integer(shots,"shots",1), integer(rounds,"rounds",1)
+    budget = integer(max_patterns,"max_patterns",1)
     seed = integer(seed,"seed")
     if not isinstance(final_perfect_round, (bool, np.bool_)):
         raise ValueError("final_perfect_round must be Boolean")
     noise = noise or MemoryNoise()
     px,py,pz,pe,pm = noise.arrays(code.n, len(code.generators))
-    decoder = decoder or (ErasureDecoder(code) if np.any(pe) else MinimumWeightDecoder(code))
+    if decoder is None:
+        decoder = (ErasureDecoder(code, max_patterns=budget) if np.any(pe)
+                   else MinimumWeightDecoder(code, max_patterns=budget))
     rng = np.random.default_rng(seed)
     failures, decoder_failures = 0, 0
     # One shot at a time limits memory independently of the number of trials.

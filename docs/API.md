@@ -61,7 +61,7 @@ Input forms:
 ]}
 ```
 
-Source lists index photon number starting at vacuum. Each source distribution must sum to one. An omitted total-cutoff tail is reported without normalization. Amplitude inputs must already be normalized, and duplicate occupations are rejected.
+Source lists index photon number starting at vacuum. Each source distribution must sum to one within `precision.atol`. With automatic cutoff, PLQ sums the largest index with strictly positive probability in each source. Trailing zeros do not increase the basis; internal zeros retain their photon-number indices. Every positive probability is retained, even below `precision.atol`. Complete distributions and the per-mode source count are validated before basis allocation. An explicit `max_photons` still overrides inference, and an omitted total-cutoff tail is reported without normalization. Amplitude inputs must already be normalized, and duplicate occupations are rejected.
 
 Each step has an `operation` field and the same named arguments as the Python method:
 
@@ -100,6 +100,10 @@ JSON never evaluates Python or imports arbitrary modules. Unknown fields and phy
 ## Error and cost controls
 
 `ResourceLimitError` is a `ValueError` with an explicit dimension/Kraus budget explanation. A dense matrix needs `16*D*D` bytes; operations and eigensolvers require several arrays. Kraus storage limits do not cap all temporary process memory. Reference decoder construction is also bounded by `max_patterns`.
+
+Memory JSON applies `max_patterns` (positive integer, default `1000000`) to both selected and automatically chosen decoders. Monte Carlo defaults to `MinimumWeightDecoder`, or `ErasureDecoder` if any erasure probability is positive. Exact mode keeps its `MaximumLikelihoodDecoder` default and its separate enumeration guard.
+
+Python `simulate_memory(code, noise=None, *, shots=10000, rounds=1, decoder=None, seed=0, final_perfect_round=True, max_patterns=1000000)` forwards the budget when it constructs a default decoder. The limit bounds patterns examined during construction and each new erasure-table enumeration, not cumulative patterns across shots, total cache memory, wall time, or all process memory. A supplied decoder object keeps its own resource policy; configure that object directly. Budget exhaustion raises `ResourceLimitError`, including when first encountering an erasure during a trial.
 
 `DecodeFailure` is an explicit decoder outcome counted conservatively in memory experiments. A generic exception is not converted into a successful correction. A zero-probability branch cannot be conditioned. Non-unitary matrices cannot be passed to `unitary`; use `transfer` for passive lossy field maps. Noisy circuits cannot be exported as lossless Perceval circuits.
 
